@@ -13,10 +13,10 @@ const Home = () => {
         margin: '2rem 0'
       }}>
         <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-          Welcome to MRUHacks2025
+          Squad Goals
         </h1>
         <p style={{ fontSize: '1.2rem', marginBottom: '2rem', opacity: 0.9 }}>
-          A modern MERN stack application built for the hackathon
+          Collaborative mind mapping for your squad - connect ideas, memories, and interests
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           <Link to="/register" className="btn btn-primary" style={{ fontSize: '1.1rem', padding: '12px 24px' }}>
@@ -30,18 +30,18 @@ const Home = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginTop: '3rem' }}>
         <div className="card">
-          <h3>🚀 Modern Stack</h3>
-          <p>Built with React, Node.js, Express, and MongoDB for a full-stack experience.</p>
+          <h3>🧠 Personal Mind Maps</h3>
+          <p>Create nodes for hobbies, interests, and memories. Connect them with tags to build your personal knowledge network.</p>
         </div>
         
         <div className="card">
-          <h3>🔐 Secure Authentication</h3>
-          <p>JWT-based authentication with password hashing and protected routes.</p>
+          <h3>👥 Collaborative Layers</h3>
+          <p>Zoom out to see how your personal map connects with your squad's maps through shared interests and tags.</p>
         </div>
         
         <div className="card">
-          <h3>📱 Responsive Design</h3>
-          <p>Mobile-first design that works perfectly on all devices and screen sizes.</p>
+          <h3>🏷️ Tag-Based Connections</h3>
+          <p>Automatic connections based on shared tags create meaningful relationships between ideas and people.</p>
         </div>
       </div>
     </div>

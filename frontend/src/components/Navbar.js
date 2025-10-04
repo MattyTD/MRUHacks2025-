@@ -26,7 +26,7 @@ const Navbar = () => {
       alignItems: 'center'
     }}>
       <Link to="/" style={{ color: 'white', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>
-        MRUHacks2025
+        Squad Goals
       </Link>
       
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
