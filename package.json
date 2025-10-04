@@ -1,0 +1,20 @@
+{
+  "name": "mruhacks2025-mern-stack",
+  "version": "1.0.0",
+  "description": "MERN Stack application for MRUHacks2025",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "keywords": ["mern", "react", "node", "express", "mongodb"],
+  "author": "MRUHacks2025",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
