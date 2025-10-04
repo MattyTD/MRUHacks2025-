@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Network } from 'vis-network/standalone';
 import { DataSet } from 'vis-data/standalone';
+import './DemoMindMap.css';
 
 const DemoMindMap = ({ 
   isPersonalLayer = true, 
@@ -310,52 +311,16 @@ const DemoMindMap = ({
   }, [nodes, edges]);
 
   return (
-    <div style={{ 
-      width: '100%', 
-      height: '500px', 
-      border: '2px solid #e0e0e0', 
-      borderRadius: '12px',
-      position: 'relative',
-      backgroundColor: '#fafafa',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-    }}>
-      <div 
-        ref={containerRef} 
-        style={{ 
-          width: '100%', 
-          height: '100%',
-          borderRadius: '10px'
-        }} 
-      />
+    <div className="demo-mindmap-container">
+      <div ref={containerRef} className="demo-mindmap-canvas" />
       
       {/* Layer indicator */}
-      <div style={{
-        position: 'absolute',
-        top: '15px',
-        left: '15px',
-        backgroundColor: 'rgba(0,123,255,0.9)',
-        color: 'white',
-        padding: '10px 15px',
-        borderRadius: '8px',
-        fontSize: '14px',
-        fontWeight: 'bold',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-      }}>
+      <div className="demo-layer-indicator">
         {isPersonalLayer ? 'Personal Layer' : 'Group Layer'} | Zoom: {currentZoom.toFixed(2)}
       </div>
 
       {/* Instructions */}
-      <div style={{
-        position: 'absolute',
-        bottom: '15px',
-        right: '15px',
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        padding: '8px 12px',
-        borderRadius: '6px',
-        fontSize: '12px',
-        maxWidth: '200px'
-      }}>
+      <div className="demo-instructions">
         {isPersonalLayer 
           ? 'Scroll to zoom out and see group connections'
           : 'Scroll to zoom in and explore personal maps'

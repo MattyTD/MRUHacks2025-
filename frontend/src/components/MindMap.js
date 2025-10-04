@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Network } from 'vis-network/standalone';
 import { DataSet } from 'vis-data/standalone';
+import './MindMap.css';
 
 const MindMap = ({ 
   isPersonalLayer = true, 
@@ -285,28 +286,11 @@ const MindMap = ({
   }, [nodes, edges]);
 
   return (
-    <div style={{ width: '100%', height: '600px', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <div 
-        ref={containerRef} 
-        style={{ 
-          width: '100%', 
-          height: '100%',
-          backgroundColor: '#fafafa'
-        }} 
-      />
+    <div className="mindmap-container">
+      <div ref={containerRef} className="mindmap-canvas" />
       
       {/* Layer indicator */}
-      <div style={{
-        position: 'absolute',
-        top: '10px',
-        left: '10px',
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        padding: '8px 12px',
-        borderRadius: '4px',
-        fontSize: '12px',
-        fontWeight: 'bold'
-      }}>
+      <div className="mindmap-layer-indicator">
         {isPersonalLayer ? 'Personal Layer' : 'Group Layer'} | Zoom: {currentZoom.toFixed(2)}
       </div>
     </div>
