@@ -18,6 +18,38 @@ const DemoMindMap = ({
   const DEFAULT_NODE_SIZE = 25;
   const DEFAULT_EDGE_WIDTH = 3;
 
+  // Utility function to generate connections based on shared tags
+  const generateTagBasedConnections = (nodes) => {
+    const connections = [];
+    const nodeArray = Array.isArray(nodes) ? nodes : nodes.get();
+    
+    for (let i = 0; i < nodeArray.length; i++) {
+      for (let j = i + 1; j < nodeArray.length; j++) {
+        const node1 = nodeArray[i];
+        const node2 = nodeArray[j];
+        
+        // Find shared tags between the two nodes
+        const sharedTags = node1.tags?.filter(tag => 
+          node2.tags?.includes(tag)
+        ) || [];
+        
+        // Only create connection if nodes share at least one tag
+        if (sharedTags.length > 0) {
+          connections.push({
+            from: node1.id,
+            to: node2.id,
+            label: sharedTags[0], // Use the first shared tag as the label
+            color: node1.color,
+            width: DEFAULT_EDGE_WIDTH,
+            title: `Connected by: ${sharedTags.join(', ')}`
+          });
+        }
+      }
+    }
+    
+    return connections;
+  };
+
   // Demo data showing realistic personal connections
   const getPersonalNodes = () => [
     { 
@@ -76,15 +108,10 @@ const DemoMindMap = ({
     }
   ];
 
-  const getPersonalEdges = () => [
-    { from: 1, to: 2, label: 'creative', color: '#FF6B6B', width: DEFAULT_EDGE_WIDTH },
-    { from: 1, to: 3, label: 'culture', color: '#45B7D1', width: DEFAULT_EDGE_WIDTH },
-    { from: 2, to: 3, label: 'experience', color: '#4ECDC4', width: DEFAULT_EDGE_WIDTH },
-    { from: 4, to: 1, label: 'technology', color: '#96CEB4', width: DEFAULT_EDGE_WIDTH },
-    { from: 1, to: 5, label: 'art', color: '#FECA57', width: DEFAULT_EDGE_WIDTH },
-    { from: 4, to: 6, label: 'technology', color: '#FF9FF3', width: DEFAULT_EDGE_WIDTH },
-    { from: 5, to: 6, label: 'entertainment', color: '#FECA57', width: DEFAULT_EDGE_WIDTH }
-  ];
+  const getPersonalEdges = () => {
+    const personalNodes = getPersonalNodes();
+    return generateTagBasedConnections(personalNodes);
+  };
 
   // Demo data showing group connections
   const getGroupNodes = () => [
@@ -126,13 +153,10 @@ const DemoMindMap = ({
     }
   ];
 
-  const getGroupEdges = () => [
-    { from: 'alice', to: 'bob', label: 'creative', color: '#FF6B6B', width: DEFAULT_EDGE_WIDTH },
-    { from: 'bob', to: 'diana', label: 'music', color: '#4ECDC4', width: DEFAULT_EDGE_WIDTH },
-    { from: 'alice', to: 'diana', label: 'art', color: '#45B7D1', width: DEFAULT_EDGE_WIDTH },
-    { from: 'charlie', to: 'alice', label: 'technology', color: '#96CEB4', width: DEFAULT_EDGE_WIDTH },
-    { from: 'charlie', to: 'bob', label: 'entertainment', color: '#FF9FF3', width: DEFAULT_EDGE_WIDTH }
-  ];
+  const getGroupEdges = () => {
+    const groupNodes = getGroupNodes();
+    return generateTagBasedConnections(groupNodes);
+  };
 
   // Network options optimized for demo
   const getNetworkOptions = () => ({
@@ -141,6 +165,9 @@ const DemoMindMap = ({
       font: {
         size: 16,
         color: '#343434',
+        strokeWidth: 2,
+        strokeColor: '#ffffff',
+        multi: true,
         bold: true
       },
       borderWidth: 3,
@@ -150,6 +177,17 @@ const DemoMindMap = ({
         size: 10,
         x: 5,
         y: 5
+      },
+      scaling: {
+        min: 15,
+        max: 35,
+        label: {
+          enabled: true,
+          min: 16,
+          max: 24,
+          maxVisible: 24,
+          drawThreshold: 5
+        }
       }
     },
     edges: {
@@ -161,14 +199,29 @@ const DemoMindMap = ({
       },
       smooth: {
         type: 'continuous',
-        forceDirection: 'none'
+        forceDirection: 'none',
+        roundness: 0.4
       },
       font: {
         size: 14,
         color: '#343434',
         background: 'rgba(255,255,255,0.8)',
         strokeWidth: 2,
-        strokeColor: '#ffffff'
+        strokeColor: '#ffffff',
+        multi: true,
+        bold: true
+      },
+      length: 250,
+      scaling: {
+        min: 1,
+        max: 3,
+        label: {
+          enabled: true,
+          min: 12,
+          max: 18,
+          maxVisible: 18,
+          drawThreshold: 1
+        }
       }
     },
     physics: {
@@ -183,7 +236,7 @@ const DemoMindMap = ({
         springLength: 120,
         springConstant: 0.04,
         damping: 0.09,
-        avoidOverlap: 0.5
+        avoidOverlap: 1
       }
     },
     interaction: {
@@ -196,7 +249,10 @@ const DemoMindMap = ({
     },
     layout: {
       improvedLayout: true,
-      randomSeed: 2
+      randomSeed: 2,
+      hierarchical: {
+        enabled: false
+      }
     }
   });
 

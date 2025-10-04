@@ -20,6 +20,38 @@ const MindMap = ({
   const DEFAULT_NODE_SIZE = 20;
   const DEFAULT_EDGE_WIDTH = 2;
 
+  // Utility function to generate connections based on shared tags
+  const generateTagBasedConnections = (nodes) => {
+    const connections = [];
+    const nodeArray = Array.isArray(nodes) ? nodes : nodes.get();
+    
+    for (let i = 0; i < nodeArray.length; i++) {
+      for (let j = i + 1; j < nodeArray.length; j++) {
+        const node1 = nodeArray[i];
+        const node2 = nodeArray[j];
+        
+        // Find shared tags between the two nodes
+        const sharedTags = node1.tags?.filter(tag => 
+          node2.tags?.includes(tag)
+        ) || [];
+        
+        // Only create connection if nodes share at least one tag
+        if (sharedTags.length > 0) {
+          connections.push({
+            from: node1.id,
+            to: node2.id,
+            label: sharedTags[0], // Use the first shared tag as the label
+            color: node1.color,
+            width: DEFAULT_EDGE_WIDTH,
+            title: `Connected by: ${sharedTags.join(', ')}`
+          });
+        }
+      }
+    }
+    
+    return connections;
+  };
+
   // Sample data for demonstration - replace with API calls
   const getPersonalNodes = () => [
     { 
@@ -56,12 +88,10 @@ const MindMap = ({
     }
   ];
 
-  const getPersonalEdges = () => [
-    { from: 1, to: 2, label: 'creative', color: '#FF6B6B', width: DEFAULT_EDGE_WIDTH },
-    { from: 1, to: 3, label: 'culture', color: '#45B7D1', width: DEFAULT_EDGE_WIDTH },
-    { from: 2, to: 3, label: 'experience', color: '#4ECDC4', width: DEFAULT_EDGE_WIDTH },
-    { from: 4, to: 1, label: 'technology', color: '#96CEB4', width: DEFAULT_EDGE_WIDTH }
-  ];
+  const getPersonalEdges = () => {
+    const personalNodes = getPersonalNodes();
+    return generateTagBasedConnections(personalNodes);
+  };
 
   const getGroupNodes = () => [
     { 
@@ -90,11 +120,10 @@ const MindMap = ({
     }
   ];
 
-  const getGroupEdges = () => [
-    { from: 'user1', to: 'user2', label: 'creative', color: '#FF6B6B', width: DEFAULT_EDGE_WIDTH },
-    { from: 'user2', to: 'user3', label: 'technology', color: '#4ECDC4', width: DEFAULT_EDGE_WIDTH },
-    { from: 'user1', to: 'user3', label: 'art', color: '#45B7D1', width: DEFAULT_EDGE_WIDTH }
-  ];
+  const getGroupEdges = () => {
+    const groupNodes = getGroupNodes();
+    return generateTagBasedConnections(groupNodes);
+  };
 
   // Network options based on layer type
   const getNetworkOptions = () => ({
@@ -102,41 +131,91 @@ const MindMap = ({
       shape: 'dot',
       font: {
         size: 14,
-        color: '#343434'
+        color: '#343434',
+        strokeWidth: 2,
+        strokeColor: '#ffffff',
+        multi: true,
+        bold: true
       },
       borderWidth: 2,
-      shadow: true
+      shadow: {
+        enabled: true,
+        color: 'rgba(0,0,0,0.2)',
+        size: 10,
+        x: 5,
+        y: 5
+      },
+      scaling: {
+        min: 10,
+        max: 30,
+        label: {
+          enabled: true,
+          min: 14,
+          max: 20,
+          maxVisible: 20,
+          drawThreshold: 5
+        }
+      }
     },
     edges: {
       width: DEFAULT_EDGE_WIDTH,
       color: { color: '#848484', highlight: '#FF6B6B' },
       smooth: {
-        type: 'continuous'
+        type: 'continuous',
+        forceDirection: 'none',
+        roundness: 0.4
       },
       font: {
         size: 12,
-        color: '#343434'
+        color: '#343434',
+        background: 'rgba(255,255,255,0.8)',
+        strokeWidth: 2,
+        strokeColor: '#ffffff',
+        multi: true,
+        bold: true
+      },
+      length: 200,
+      scaling: {
+        min: 1,
+        max: 3,
+        label: {
+          enabled: true,
+          min: 10,
+          max: 16,
+          maxVisible: 16,
+          drawThreshold: 1
+        }
       }
     },
     physics: {
       enabled: true,
-      stabilization: { iterations: 100 },
+      stabilization: { 
+        iterations: 200,
+        updateInterval: 25
+      },
       barnesHut: {
         gravitationalConstant: -2000,
         centralGravity: 0.3,
-        springLength: 95,
+        springLength: 120,
         springConstant: 0.04,
-        damping: 0.09
+        damping: 0.09,
+        avoidOverlap: 1
       }
     },
     interaction: {
       hover: true,
       tooltipDelay: 300,
       hideEdgesOnDrag: false,
-      hideEdgesOnZoom: false
+      hideEdgesOnZoom: false,
+      zoomView: true,
+      dragView: true
     },
     layout: {
-      improvedLayout: true
+      improvedLayout: true,
+      randomSeed: 2,
+      hierarchical: {
+        enabled: false
+      }
     }
   });
 
