@@ -12,6 +12,11 @@
   width: 100%;
   height: 100%;
   background-color: #fafafa;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.mindmap-canvas.transitioning {
+  opacity: 0.3;
 }
 
 .mindmap-layer-indicator {

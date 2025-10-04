@@ -19,6 +19,7 @@ const MindMap = ({
   const [currentZoom, setCurrentZoom] = useState(1);
   const [activeGroupNodeId, setActiveGroupNodeId] = useState(null);
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Constants for configuration
   const PERSONAL_LAYER_ZOOM_THRESHOLD = 0.5;
@@ -381,28 +382,132 @@ const MindMap = ({
     }
   }, [currentZoom, isPersonalLayer, hoveredNodeId, onLayerChange, PERSONAL_LAYER_ZOOM_THRESHOLD, GROUP_LAYER_ZOOM_THRESHOLD]);
 
-  // Update network data when layer or active node changes
+  // Pre-load next layer data and create cross-fade effect
   useEffect(() => {
     if (!networkRef.current) return;
 
-    // Get new data based on current layer
-    const nodeData = isPersonalLayer 
+    // Get the next layer's data
+    const nextNodeData = isPersonalLayer 
       ? getPersonalNodes(activeGroupNodeId) 
       : getGroupNodes();
-    const edgeData = isPersonalLayer 
+    const nextEdgeData = isPersonalLayer 
       ? getPersonalEdges(activeGroupNodeId) 
       : getGroupEdges();
 
-    // Update the DataSets
-    nodesRef.current.clear();
-    nodesRef.current.add(nodeData);
-    edgesRef.current.clear();
-    edgesRef.current.add(edgeData);
+    // Start transition effect
+    setIsTransitioning(true);
 
-    // Let the network stabilize with smooth animation
-    if (networkRef.current) {
-      networkRef.current.stabilize();
+    // Get the position of the active group node (if zooming into personal layer)
+    let startPosition = { x: 0, y: 0 };
+    if (isPersonalLayer && activeGroupNodeId) {
+      try {
+        const positions = networkRef.current.getPositions([activeGroupNodeId]);
+        if (positions[activeGroupNodeId]) {
+          startPosition = positions[activeGroupNodeId];
+        }
+      } catch (e) {
+        // If node doesn't exist, use center
+        startPosition = { x: 0, y: 0 };
+      }
     }
+
+    // Immediately add next layer nodes with low opacity for cross-fade
+    // Position them at the group node's location initially
+    const transitionNodes = nextNodeData.map(node => ({
+      ...node,
+      id: `next-${node.id}`, // Temporary unique IDs
+      x: startPosition.x,     // Start at group node position
+      y: startPosition.y,
+      opacity: 0.0,
+      physics: false, // Don't let physics affect ghost nodes initially
+      hidden: false
+    }));
+
+    const transitionEdges = nextEdgeData.map((edge, idx) => ({
+      ...edge,
+      id: `next-edge-${idx}`,
+      from: `next-${edge.from}`,
+      to: `next-${edge.to}`,
+      opacity: 0.0,
+      hidden: false
+    }));
+
+    // Remove any existing transition nodes first (in case of double render in Strict Mode)
+    const existingNodes = nodesRef.current.get();
+    const transitionNodeIds = existingNodes
+      .filter(node => node.id.toString().startsWith('next-'))
+      .map(node => node.id);
+    if (transitionNodeIds.length > 0) {
+      nodesRef.current.remove(transitionNodeIds);
+    }
+
+    const existingEdges = edgesRef.current.get();
+    const transitionEdgeIds = existingEdges
+      .filter(edge => edge.id.toString().startsWith('next-edge-'))
+      .map(edge => edge.id);
+    if (transitionEdgeIds.length > 0) {
+      edgesRef.current.remove(transitionEdgeIds);
+    }
+
+    // Add ghost nodes/edges for cross-fade
+    nodesRef.current.add(transitionNodes);
+    edgesRef.current.add(transitionEdges);
+    
+    // Gradually fade in the new layer while fading out the old
+    const fadeSteps = 10;
+    const fadeInterval = 50; // 500ms total for smooth transition
+    let currentStep = 0;
+
+    const fadeAnimation = setInterval(() => {
+      currentStep++;
+      const progress = currentStep / fadeSteps;
+
+      // Update ghost nodes opacity and position (fade in + expand from center)
+      const updatedNodes = transitionNodes.map((node, index) => {
+        // Calculate target position (we'll let vis.js handle final layout)
+        // For now, create a radial expansion from center
+        const angle = (index / nextNodeData.length) * 2 * Math.PI;
+        const radius = 150 * progress; // Gradually expand outward
+        
+        return {
+          ...node,
+          x: startPosition.x + Math.cos(angle) * radius,
+          y: startPosition.y + Math.sin(angle) * radius,
+          opacity: progress,
+          physics: progress > 0.5 // Enable physics halfway through for natural settling
+        };
+      });
+
+      const updatedEdges = transitionEdges.map(edge => ({
+        ...edge,
+        opacity: progress * 0.8 // Match edge opacity
+      }));
+
+      nodesRef.current.update(updatedNodes);
+      edgesRef.current.update(updatedEdges);
+
+      if (currentStep >= fadeSteps) {
+        clearInterval(fadeAnimation);
+
+        // Now replace with actual data
+        nodesRef.current.clear();
+        edgesRef.current.clear();
+        nodesRef.current.add(nextNodeData);
+        edgesRef.current.add(nextEdgeData);
+
+        // Let the network stabilize
+        if (networkRef.current) {
+          networkRef.current.stabilize();
+        }
+
+        // End transition
+        setIsTransitioning(false);
+      }
+    }, fadeInterval);
+
+    return () => {
+      clearInterval(fadeAnimation);
+    };
   }, [isPersonalLayer, activeGroupNodeId, getPersonalNodes, getPersonalEdges, getGroupNodes, getGroupEdges]);
 
   // Calculate unique tags for legend
@@ -415,7 +520,10 @@ const MindMap = ({
 
   return (
     <div className="mindmap-container">
-      <div ref={containerRef} className="mindmap-canvas" />
+      <div 
+        ref={containerRef} 
+        className={`mindmap-canvas ${isTransitioning ? 'transitioning' : ''}`}
+      />
       
       {/* Layer indicator */}
       <div className="mindmap-layer-indicator">
