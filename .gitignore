@@ -9,6 +9,7 @@ yarn-error.log*
 /dist
 
 # Environment variables
+backend/config.env
 .env
 .env.local
 .env.development.local
