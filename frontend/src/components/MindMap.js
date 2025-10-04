@@ -1,19 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Network } from 'vis-network/standalone';
 import { DataSet } from 'vis-data/standalone';
+import { getTagColor, getUniqueTags } from '../utils/tagColors';
+import Legend from './Legend';
 import './MindMap.css';
 
 const MindMap = ({ 
   isPersonalLayer = true, 
   userId = null, 
   onNodeClick = null,
-  onZoomChange = null 
+  onZoomChange = null,
+  onLayerChange = null 
 }) => {
   const networkRef = useRef(null);
   const containerRef = useRef(null);
-  const [nodes, setNodes] = useState(new DataSet([]));
-  const [edges, setEdges] = useState(new DataSet([]));
+  const nodesRef = useRef(new DataSet([]));
+  const edgesRef = useRef(new DataSet([]));
   const [currentZoom, setCurrentZoom] = useState(1);
+  const [activeGroupNodeId, setActiveGroupNodeId] = useState(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState(null);
 
   // Constants for configuration
   const PERSONAL_LAYER_ZOOM_THRESHOLD = 0.5;
@@ -21,8 +26,116 @@ const MindMap = ({
   const DEFAULT_NODE_SIZE = 20;
   const DEFAULT_EDGE_WIDTH = 2;
 
+  // Personal mind map data for each user - in production, this would come from API
+  // Memoized to prevent recreation on every render
+  const personalMindMaps = useMemo(() => ({
+    'user1': [
+      { 
+        id: 'user1-1', 
+        label: 'Photography', 
+        color: '#FF6B6B',
+        tags: ['hobby', 'creative', 'art'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'hobby'
+      },
+      { 
+        id: 'user1-2', 
+        label: 'Travel Memory: Japan', 
+        color: '#45B7D1',
+        tags: ['memory', 'travel', 'culture'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'memory'
+      },
+      { 
+        id: 'user1-3', 
+        label: 'Painting', 
+        color: '#FECA57',
+        tags: ['hobby', 'creative', 'art'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'hobby'
+      },
+      { 
+        id: 'user1-4', 
+        label: 'Paris Memory', 
+        color: '#A1C4FD',
+        tags: ['memory', 'travel', 'culture'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'memory'
+      }
+    ],
+    'user2': [
+      { 
+        id: 'user2-1', 
+        label: 'Cooking', 
+        color: '#4ECDC4',
+        tags: ['hobby', 'life-skill', 'creative'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'hobby'
+      },
+      { 
+        id: 'user2-2', 
+        label: 'Guitar', 
+        color: '#FECA57',
+        tags: ['hobby', 'music', 'creative'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'hobby'
+      },
+      { 
+        id: 'user2-3', 
+        label: 'Soccer', 
+        color: '#96CEB4',
+        tags: ['hobby', 'sports', 'health'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'hobby'
+      },
+      { 
+        id: 'user2-4', 
+        label: 'Concert Memory', 
+        color: '#FF9FF3',
+        tags: ['memory', 'music', 'entertainment'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'memory'
+      }
+    ],
+    'user3': [
+      { 
+        id: 'user3-1', 
+        label: 'Programming', 
+        color: '#96CEB4',
+        tags: ['skill', 'career', 'technology'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'skill'
+      },
+      { 
+        id: 'user3-2', 
+        label: 'Gaming', 
+        color: '#FF9FF3',
+        tags: ['hobby', 'technology', 'entertainment'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'hobby'
+      },
+      { 
+        id: 'user3-3', 
+        label: 'Hackathon Win', 
+        color: '#FF6B6B',
+        tags: ['memory', 'career', 'technology'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'memory'
+      },
+      { 
+        id: 'user3-4', 
+        label: 'AI Research', 
+        color: '#45B7D1',
+        tags: ['skill', 'technology', 'career'],
+        size: DEFAULT_NODE_SIZE,
+        group: 'skill'
+      }
+    ]
+  }), [DEFAULT_NODE_SIZE]);
+
   // Utility function to generate connections based on shared tags
-  const generateTagBasedConnections = (nodes) => {
+  // Creates separate colored edges for each shared tag
+  const generateTagBasedConnections = useCallback((nodes) => {
     const connections = [];
     const nodeArray = Array.isArray(nodes) ? nodes : nodes.get();
     
@@ -36,65 +149,43 @@ const MindMap = ({
           node2.tags?.includes(tag)
         ) || [];
         
-        // Only create connection if nodes share at least one tag
-        if (sharedTags.length > 0) {
+        // Create a separate edge for each shared tag with its specific color
+        sharedTags.forEach((tag, index) => {
           connections.push({
             from: node1.id,
             to: node2.id,
-            label: sharedTags[0], // Use the first shared tag as the label
-            color: node1.color,
+            color: {
+              color: getTagColor(tag),
+              highlight: getTagColor(tag),
+              hover: getTagColor(tag),
+              opacity: 0.8
+            },
             width: DEFAULT_EDGE_WIDTH,
-            title: `Connected by: ${sharedTags.join(', ')}`
+            title: `Connection: ${tag}`,
+            smooth: {
+              type: 'curvedCW',
+              roundness: 0.1 + (index * 0.15) // Offset multiple edges
+            }
           });
-        }
+        });
       }
     }
     
     return connections;
-  };
+  }, [DEFAULT_EDGE_WIDTH]);
 
-  // Sample data for demonstration - replace with API calls
-  const getPersonalNodes = () => [
-    { 
-      id: 1, 
-      label: 'Photography', 
-      color: '#FF6B6B',
-      tags: ['hobby', 'creative', 'art'],
-      size: DEFAULT_NODE_SIZE,
-      group: 'hobby'
-    },
-    { 
-      id: 2, 
-      label: 'Cooking', 
-      color: '#4ECDC4',
-      tags: ['hobby', 'life-skill', 'creative'],
-      size: DEFAULT_NODE_SIZE,
-      group: 'hobby'
-    },
-    { 
-      id: 3, 
-      label: 'Travel Memory: Japan', 
-      color: '#45B7D1',
-      tags: ['memory', 'travel', 'culture'],
-      size: DEFAULT_NODE_SIZE,
-      group: 'memory'
-    },
-    { 
-      id: 4, 
-      label: 'Programming', 
-      color: '#96CEB4',
-      tags: ['skill', 'career', 'technology'],
-      size: DEFAULT_NODE_SIZE,
-      group: 'skill'
-    }
-  ];
+  // Get personal nodes for a specific user (or default if no user specified)
+  const getPersonalNodes = useCallback((groupNodeId = null) => {
+    const targetUserId = groupNodeId || userId || 'user1';
+    return personalMindMaps[targetUserId] || personalMindMaps['user1'];
+  }, [userId, personalMindMaps]);
 
-  const getPersonalEdges = () => {
-    const personalNodes = getPersonalNodes();
+  const getPersonalEdges = useCallback((groupNodeId = null) => {
+    const personalNodes = getPersonalNodes(groupNodeId);
     return generateTagBasedConnections(personalNodes);
-  };
+  }, [getPersonalNodes, generateTagBasedConnections]);
 
-  const getGroupNodes = () => [
+  const getGroupNodes = useCallback(() => [
     { 
       id: 'user1', 
       label: 'Alice\'s Mind', 
@@ -119,12 +210,12 @@ const MindMap = ({
       size: DEFAULT_NODE_SIZE * 2,
       group: 'user'
     }
-  ];
+  ], [DEFAULT_NODE_SIZE]);
 
-  const getGroupEdges = () => {
+  const getGroupEdges = useCallback(() => {
     const groupNodes = getGroupNodes();
     return generateTagBasedConnections(groupNodes);
-  };
+  }, [getGroupNodes, generateTagBasedConnections]);
 
   // Network options based on layer type
   const getNetworkOptions = () => ({
@@ -160,31 +251,19 @@ const MindMap = ({
     },
     edges: {
       width: DEFAULT_EDGE_WIDTH,
-      color: { color: '#848484', highlight: '#FF6B6B' },
       smooth: {
-        type: 'continuous',
-        forceDirection: 'none',
-        roundness: 0.4
-      },
-      font: {
-        size: 12,
-        color: '#343434',
-        background: 'rgba(255,255,255,0.8)',
-        strokeWidth: 2,
-        strokeColor: '#ffffff',
-        multi: true,
-        bold: true
+        enabled: true,
+        type: 'curvedCW',
+        roundness: 0.2
       },
       length: 200,
       scaling: {
         min: 1,
-        max: 3,
-        label: {
-          enabled: true,
-          min: 10,
-          max: 16,
-          maxVisible: 16,
-          drawThreshold: 1
+        max: 3
+      },
+      arrows: {
+        to: {
+          enabled: false
         }
       }
     },
@@ -220,38 +299,52 @@ const MindMap = ({
     }
   });
 
-  // Initialize network
+  // Initialize network once on mount
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || networkRef.current) return;
 
-    // Load appropriate data based on layer
-    const nodeData = isPersonalLayer ? getPersonalNodes() : getGroupNodes();
-    const edgeData = isPersonalLayer ? getPersonalEdges() : getGroupEdges();
+    // Load initial data based on current layer (only if DataSet is empty)
+    if (nodesRef.current.length === 0) {
+      const initialNodeData = isPersonalLayer 
+        ? getPersonalNodes(activeGroupNodeId) 
+        : getGroupNodes();
+      const initialEdgeData = isPersonalLayer 
+        ? getPersonalEdges(activeGroupNodeId) 
+        : getGroupEdges();
 
-    setNodes(new DataSet(nodeData));
-    setEdges(new DataSet(edgeData));
-
-    const data = {
-      nodes: new DataSet(nodeData),
-      edges: new DataSet(edgeData)
-    };
+      nodesRef.current.add(initialNodeData);
+      edgesRef.current.add(initialEdgeData);
+    }
 
     const options = getNetworkOptions();
 
-    // Create network instance
-    networkRef.current = new Network(containerRef.current, data, options);
+    // Create network instance with initial data
+    networkRef.current = new Network(containerRef.current, {
+      nodes: nodesRef.current,
+      edges: edgesRef.current
+    }, options);
 
-    // Event listeners
+    // Event listeners for hover detection
+    networkRef.current.on('hoverNode', (params) => {
+      setHoveredNodeId(params.node);
+    });
+
+    networkRef.current.on('blurNode', () => {
+      setHoveredNodeId(null);
+    });
+
+    // Event listeners for click
     networkRef.current.on('click', (params) => {
       if (params.nodes.length > 0) {
         const nodeId = params.nodes[0];
-        const node = nodes.get(nodeId);
+        const node = nodesRef.current.get(nodeId);
         if (onNodeClick) {
           onNodeClick(node);
         }
       }
     });
 
+    // Event listeners for zoom
     networkRef.current.on('zoom', (params) => {
       const newZoom = params.scale;
       setCurrentZoom(newZoom);
@@ -259,31 +352,66 @@ const MindMap = ({
       if (onZoomChange) {
         onZoomChange(newZoom);
       }
-
-      // Auto-switch layers based on zoom level
-      if (isPersonalLayer && newZoom < PERSONAL_LAYER_ZOOM_THRESHOLD) {
-        // Switch to group layer
-        console.log('Switching to group layer');
-      } else if (!isPersonalLayer && newZoom > GROUP_LAYER_ZOOM_THRESHOLD) {
-        // Switch to personal layer
-        console.log('Switching to personal layer');
-      }
     });
 
     // Cleanup
     return () => {
       if (networkRef.current) {
         networkRef.current.destroy();
+        networkRef.current = null;
       }
     };
-  }, [isPersonalLayer, userId, onNodeClick, onZoomChange]);
+  }, [onNodeClick, onZoomChange]); // Only re-run if callbacks change
 
-  // Update network when data changes
+  // Handle zoom-based layer switching
   useEffect(() => {
-    if (networkRef.current) {
-      networkRef.current.setData({ nodes, edges });
+    if (!onLayerChange) return;
+
+    // Auto-switch layers based on zoom level AND if hovering over a node
+    if (isPersonalLayer && currentZoom < PERSONAL_LAYER_ZOOM_THRESHOLD) {
+      // Switch to group layer when zooming out from personal layer
+      onLayerChange('group');
+      setActiveGroupNodeId(null);
+    } else if (!isPersonalLayer && currentZoom > GROUP_LAYER_ZOOM_THRESHOLD) {
+      // Only switch to personal layer if hovering over a group node
+      if (hoveredNodeId) {
+        setActiveGroupNodeId(hoveredNodeId);
+        onLayerChange('personal');
+      }
     }
-  }, [nodes, edges]);
+  }, [currentZoom, isPersonalLayer, hoveredNodeId, onLayerChange, PERSONAL_LAYER_ZOOM_THRESHOLD, GROUP_LAYER_ZOOM_THRESHOLD]);
+
+  // Update network data when layer or active node changes
+  useEffect(() => {
+    if (!networkRef.current) return;
+
+    // Get new data based on current layer
+    const nodeData = isPersonalLayer 
+      ? getPersonalNodes(activeGroupNodeId) 
+      : getGroupNodes();
+    const edgeData = isPersonalLayer 
+      ? getPersonalEdges(activeGroupNodeId) 
+      : getGroupEdges();
+
+    // Update the DataSets
+    nodesRef.current.clear();
+    nodesRef.current.add(nodeData);
+    edgesRef.current.clear();
+    edgesRef.current.add(edgeData);
+
+    // Let the network stabilize with smooth animation
+    if (networkRef.current) {
+      networkRef.current.stabilize();
+    }
+  }, [isPersonalLayer, activeGroupNodeId, getPersonalNodes, getPersonalEdges, getGroupNodes, getGroupEdges]);
+
+  // Calculate unique tags for legend
+  const legendTags = useMemo(() => {
+    const nodeData = isPersonalLayer 
+      ? getPersonalNodes(activeGroupNodeId) 
+      : getGroupNodes();
+    return getUniqueTags(nodeData);
+  }, [isPersonalLayer, activeGroupNodeId, getPersonalNodes, getGroupNodes]);
 
   return (
     <div className="mindmap-container">
@@ -291,8 +419,13 @@ const MindMap = ({
       
       {/* Layer indicator */}
       <div className="mindmap-layer-indicator">
-        {isPersonalLayer ? 'Personal Layer' : 'Group Layer'} | Zoom: {currentZoom.toFixed(2)}
+        {isPersonalLayer 
+          ? `Personal Layer: ${activeGroupNodeId ? activeGroupNodeId : 'Default'}` 
+          : 'Group Layer'} | Zoom: {currentZoom.toFixed(2)}
       </div>
+
+      {/* Legend */}
+      <Legend tags={legendTags} title="Connection Tags" />
     </div>
   );
 };

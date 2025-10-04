@@ -39,6 +39,10 @@ const Dashboard = () => {
     }
   };
 
+  const handleLayerChange = (newLayer) => {
+    setCurrentLayer(newLayer);
+  };
+
   const switchToPersonalLayer = () => {
     setCurrentLayer('personal');
   };
@@ -101,6 +105,7 @@ const Dashboard = () => {
           userId={user?.id}
           onNodeClick={handleNodeClick}
           onZoomChange={handleZoomChange}
+          onLayerChange={handleLayerChange}
         />
       </div>
 
