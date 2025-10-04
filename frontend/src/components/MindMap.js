@@ -196,7 +196,7 @@ const MindMap = ({
         networkRef.current.destroy();
       }
     };
-  }, [isPersonalLayer, userId]);
+  }, [isPersonalLayer, userId, onNodeClick, onZoomChange]);
 
   // Update network when data changes
   useEffect(() => {
