@@ -144,6 +144,11 @@
   transition: all 1s ease-out 0.5s;
 }
 
+/* When logged in, give the hero more breathing room above the CTA */
+.hero-content.logged-in {
+  margin-bottom: 4.5rem; /* keeps distance from scroll indicator/CTA */
+}
+
 .hero-content.visible {
   opacity: 1;
   transform: translateY(0);
@@ -249,7 +254,7 @@
 /* Scroll Indicator */
 .scroll-indicator {
   position: absolute;
-  bottom: 3rem;
+  bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
