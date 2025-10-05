@@ -293,7 +293,7 @@ router.get('/personal-mindmap', auth, async (req, res) => {
 // @access  Private
 router.post('/create-personal-mindmap', auth, async (req, res) => {
   try {
-    const { name, context, nodes, edges, connectionTypes, legend, levels } = req.body;
+    const { name, context, nodes, edges, legend, levels } = req.body;
     
     if (!name || !context || !nodes || !edges) {
       return res.status(400).json({ message: 'Missing required fields for personal mind map' });
@@ -309,7 +309,6 @@ router.post('/create-personal-mindmap', auth, async (req, res) => {
       context,
       nodes,
       edges,
-      connectionTypes: connectionTypes || [],
       legend: legend || {},
       levels: levels || 3,
       createdAt: new Date().toISOString(),

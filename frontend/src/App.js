@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Owner from './pages/Owner';
 import PersonalMindMaps from './pages/PersonalMindMaps';
 import BoardEditor from './pages/BoardEditor';
+import GeneratedGroupMap from './pages/GeneratedGroupMap';
 import ProtectedRoute from './components/ProtectedRoute';
 import hud from './assets/jhudderson.png';
 import gaybrothers from './assets/gaybrothers.png';
@@ -79,6 +80,14 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <BoardEditor />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/generated-map" 
+                element={
+                  <ProtectedRoute>
+                    <GeneratedGroupMap />
                   </ProtectedRoute>
                 } 
               />

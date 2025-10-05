@@ -19,6 +19,9 @@ const Owner = () => {
   const [sidebarWidth, setSidebarWidth] = useState(80);
   const [personalMindMaps, setPersonalMindMaps] = useState([]);
   const [showMindMapSelector, setShowMindMapSelector] = useState(false);
+  const [showMindMapPicker, setShowMindMapPicker] = useState(false);
+  const [selectedMindMapId, setSelectedMindMapId] = useState(null);
+  const [pendingOpenBoardId, setPendingOpenBoardId] = useState(null);
   const [boardType, setBoardType] = useState('personal'); // 'personal' or 'collective'
 
   // Board color options
@@ -55,9 +58,12 @@ const Owner = () => {
       const response = await axios.get('/api/auth/personal-mindmaps', {
         headers: { 'x-auth-token': token }
       });
-      setPersonalMindMaps(response.data.mindMaps || []);
+      const maps = response.data.mindMaps || [];
+      setPersonalMindMaps(maps);
+      return maps;
     } catch (err) {
       console.error('Error fetching personal mind maps:', err);
+      return [];
     }
   };
 
@@ -118,6 +124,15 @@ const Owner = () => {
       setShowMindMapSelector(true);
       return;
     }
+    
+    // If creating a personal board and user has mind maps, prompt to pick one (unless already chosen)
+    if (boardType === 'personal' && personalMindMaps.length > 0 && !selectedMindMapId) {
+      setShowCreateModal(false);
+      // Preselect first by default to streamline flow
+      setSelectedMindMapId(personalMindMaps[0]?._id || null);
+      setShowMindMapPicker(true);
+      return;
+    }
 
     try {
       const token = localStorage.getItem('token');
@@ -130,20 +145,87 @@ const Owner = () => {
         headers: { 'x-auth-token': token }
       });
       
-      setBoards([response.data, ...boards]);
-      setFilteredBoards([response.data, ...filteredBoards]);
+      let createdBoard = response.data;
+
+      // If personal board with selected mind map: navigate directly to the generated map view
+      if (boardType === 'personal' && selectedMindMapId) {
+        const map = personalMindMaps.find(m => m._id === selectedMindMapId);
+        // reset state/modals first
+        setShowMindMapPicker(false);
+        setSelectedMindMapId(null);
+        handleCloseModal();
+        // go straight to generated interactive network from the chosen personal map
+        navigate(`/generated-map?mid=${encodeURIComponent(map?._id || '')}`, { state: { mindMap: map } });
+        return;
+      }
+
+      setBoards([createdBoard, ...boards]);
+      setFilteredBoards([createdBoard, ...filteredBoards]);
+      // Reset selection/pickers and modal state
+      setShowMindMapPicker(false);
+      setSelectedMindMapId(null);
       handleCloseModal();
       
-      // Navigate to board editor
-      navigate(`/board/${response.data._id}`);
+      // Navigate to editor only for collective boards
+      navigate(`/board/${createdBoard._id}`);
     } catch (err) {
       console.error('Error creating board:', err);
       setError('Failed to create board');
     }
   };
 
-  const handleBoardClick = (boardId) => {
+  const handleBoardClick = async (boardId) => {
+    const board = boards.find(b => b._id === boardId);
+    if (board && board.type === 'personal') {
+      // Always regenerate from a personal mind map
+      let map = null;
+      let maps = personalMindMaps;
+      if (!maps || maps.length === 0) maps = await fetchPersonalMindMaps();
+      if (board.importedFrom) {
+        map = maps.find(m => m._id === board.importedFrom) || null;
+      }
+      // Try title match (board title == personal mind map name)
+      if (!map && board.title) {
+        const titleLc = String(board.title).trim().toLowerCase();
+        map = maps.find(m => String(m.name).trim().toLowerCase() === titleLc) || null;
+      }
+      // If still unmapped and options exist, ask user which one once and persist association
+      if (!map && maps && maps.length > 0) {
+        setPendingOpenBoardId(boardId);
+        setSelectedMindMapId(maps[0]._id);
+        setShowMindMapPicker(true);
+        return;
+      }
+      if (map) {
+        navigate(`/generated-map?mid=${encodeURIComponent(map._id)}`, { state: { mindMap: map } });
+        return;
+      }
+      // Fallback: open editor if user has no personal mind maps yet
+      navigate(`/board/${boardId}`);
+      return;
+    }
     navigate(`/board/${boardId}`);
+  };
+
+  const handleConfirmOpenSelected = async () => {
+    if (!pendingOpenBoardId || !selectedMindMapId) {
+      setShowMindMapPicker(false);
+      setPendingOpenBoardId(null);
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/api/boards/${pendingOpenBoardId}`, { importedFrom: selectedMindMapId }, { headers: { 'x-auth-token': token } });
+    } catch (err) {
+      console.error('Failed to persist board association', err);
+    }
+    const chosen = personalMindMaps.find(m => m._id === selectedMindMapId);
+    setShowMindMapPicker(false);
+    setPendingOpenBoardId(null);
+    setSelectedMindMapId(null);
+    if (chosen) {
+      navigate(`/generated-map?mid=${encodeURIComponent(chosen._id)}`, { state: { mindMap: chosen } });
+    }
   };
 
   const handleDeleteBoard = async (boardId) => {
@@ -427,6 +509,71 @@ const Owner = () => {
                 setShowMindMapSelector(false);
                 navigate('/personal-mindmaps');
               }}>Create Mind Map</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Personal Mind Map Picker (for importing into new personal board) */}
+      {showMindMapPicker && (
+        <div className="modal-overlay" onClick={() => { setShowMindMapPicker(false); setSelectedMindMapId(null); }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Select Personal Mind Map</h2>
+              <button className="modal-close" onClick={() => { setShowMindMapPicker(false); setSelectedMindMapId(null); }}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p>Choose one of your personal mind maps to generate the board (same layout as the welcome page).</p>
+              <div className="mindmap-picker-list">
+                {personalMindMaps.map(map => (
+                  <label key={map._id} className={`mindmap-picker-item ${selectedMindMapId === map._id ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="selectedMindMap"
+                      value={map._id}
+                      checked={selectedMindMapId === map._id}
+                      onChange={() => setSelectedMindMapId(map._id)}
+                    />
+                    <div className="mindmap-picker-content">
+                      <div className="mindmap-picker-title">{map.name}</div>
+                      <div className="mindmap-picker-meta">
+                        <span>{map.nodes?.length || 0} nodes</span>
+                        <span>{map.edges?.length || 0} connections</span>
+                        <span>{map.levels ?? Math.max(...(map.nodes||[]).map(n => n.layer || 0), 0) + 1} levels</span>
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => { setShowMindMapPicker(false); setSelectedMindMapId(null); setPendingOpenBoardId(null); }}>Cancel</button>
+              <button 
+                className="btn-primary"
+                disabled={!selectedMindMapId}
+                onClick={(e) => {
+                  if (pendingOpenBoardId) {
+                    // Persist association and open
+                    (async () => {
+                      try {
+                        const token = localStorage.getItem('token');
+                        await axios.put(`/api/boards/${pendingOpenBoardId}`, { importedFrom: selectedMindMapId }, { headers: { 'x-auth-token': token } });
+                      } catch (_) {}
+                      const chosen = personalMindMaps.find(m => m._id === selectedMindMapId);
+                      setShowMindMapPicker(false);
+                      setPendingOpenBoardId(null);
+                      setSelectedMindMapId(null);
+                      if (chosen) navigate(`/generated-map?mid=${encodeURIComponent(chosen._id)}`, { state: { mindMap: chosen } });
+                    })();
+                  } else {
+                    // Create flow
+                    setShowMindMapPicker(false);
+                    handleSubmitBoard(e);
+                  }
+                }}
+              >
+                Use Selected Map
+              </button>
             </div>
           </div>
         </div>

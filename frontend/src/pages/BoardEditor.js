@@ -24,23 +24,60 @@ const BoardEditor = () => {
   const [theme, setTheme] = useState('dark');
   const [personalMindMaps, setPersonalMindMaps] = useState([]);
   const [showMindMapSelector, setShowMindMapSelector] = useState(false);
+  const [legend, setLegend] = useState({});
+  const [autoRouted, setAutoRouted] = useState(false);
+
+  // Ensure nodes have positions; if missing, lay them out in concentric circles by layer
+  const generatePositionsIfMissing = (rawNodes) => {
+    const missing = (rawNodes || []).some(n => typeof n.x !== 'number' || typeof n.y !== 'number');
+    if (!missing) return rawNodes || [];
+
+    const width = 1000;
+    const height = 600;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    const byLayer = new Map();
+    (rawNodes || []).forEach(n => {
+      const l = n.layer ?? 0;
+      if (!byLayer.has(l)) byLayer.set(l, []);
+      byLayer.get(l).push(n);
+    });
+
+    const laidOut = (rawNodes || []).map(n => ({ ...n }));
+    Array.from(byLayer.entries()).forEach(([layer, layerNodes]) => {
+      const radius = 120 + Number(layer) * 140;
+      const count = layerNodes.length || 1;
+      layerNodes.forEach((node, idx) => {
+        const angle = (idx / count) * Math.PI * 2;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        const i = laidOut.findIndex(nn => nn.id === node.id);
+        if (i !== -1) {
+          laidOut[i].x = x;
+          laidOut[i].y = y;
+        }
+      });
+    });
+
+    return laidOut;
+  };
 
   useEffect(() => {
     fetchBoard();
+    if (board?.type === 'personal') {
+      fetchPersonalMindMaps();
+    }
   }, [id]);
 
   const fetchBoard = async () => {
     try {
       const response = await axios.get(`/api/boards/${id}`);
       setBoard(response.data);
-      setNodes(response.data.nodes || []);
+      setNodes(generatePositionsIfMissing(response.data.nodes || []));
       setEdges(response.data.edges || []);
       setTheme(response.data.theme || 'dark');
-      
-      // Fetch personal mind maps if this is a personal board
-      if (response.data.type === 'personal') {
-        fetchPersonalMindMaps();
-      }
+      setLegend(response.data.legend || {});
     } catch (err) {
       console.error('Error fetching board:', err);
       setError('Failed to load board');
@@ -52,11 +89,43 @@ const BoardEditor = () => {
   const fetchPersonalMindMaps = async () => {
     try {
       const response = await axios.get('/api/auth/personal-mindmaps');
-      setPersonalMindMaps(response.data.mindMaps || []);
+      const maps = response.data.mindMaps || [];
+      setPersonalMindMaps(maps);
+      return maps;
     } catch (err) {
       console.error('Error fetching personal mind maps:', err);
+      return [];
     }
   };
+
+  // Auto-redirect: For personal boards, regenerate the map immediately from the linked personal mind map
+  useEffect(() => {
+    const run = async () => {
+      if (autoRouted) return;
+      if (!board) return;
+      if (board.type !== 'personal') return;
+      setAutoRouted(true);
+
+      let maps = personalMindMaps;
+      if (!maps || maps.length === 0) maps = await fetchPersonalMindMaps();
+      let map = null;
+      if (board.importedFrom) map = maps.find(m => m._id === board.importedFrom) || null;
+      if (!map) {
+        // Fallback to building from board contents if original map not found
+        map = {
+          _id: board.importedFrom || board._id,
+          name: board.title || 'Generated Map',
+          context: 'recreational',
+          nodes: board.nodes || [],
+          edges: board.edges || [],
+          legend: board.legend || {},
+          connectionTypes: board.connectionTypes || []
+        };
+      }
+      navigate(`/generated-map?mid=${encodeURIComponent(map._id || board._id)}`, { state: { mindMap: map } });
+    };
+    run();
+  }, [board, personalMindMaps, autoRouted, navigate]);
 
   const handleCanvasClick = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -174,12 +243,15 @@ const BoardEditor = () => {
   };
 
   const handleMindMapImport = (mindMap) => {
-    setNodes(mindMap.nodes || []);
+    const computedNodes = generatePositionsIfMissing(mindMap.nodes || []);
+    setNodes(computedNodes);
     setEdges(mindMap.edges || []);
+    setLegend(mindMap.legend || {});
     setShowMindMapSelector(false);
     saveBoard({ 
-      nodes: mindMap.nodes || [], 
+      nodes: computedNodes, 
       edges: mindMap.edges || [],
+      legend: mindMap.legend || {},
       importedFrom: mindMap._id 
     });
   };

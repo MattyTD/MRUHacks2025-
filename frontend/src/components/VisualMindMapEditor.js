@@ -49,6 +49,22 @@ const VisualMindMapEditor = ({ onComplete, onCancel, initialData = null }) => {
       setEdges(initialData.edges || []);
       setMindMapName(initialData.name || '');
       setMindMapContext(initialData.context || 'recreational');
+      // Load connection types from initial data, falling back to legend
+      if (Array.isArray(initialData.connectionTypes) && initialData.connectionTypes.length > 0) {
+        setConnectionTypes(initialData.connectionTypes);
+      } else if (initialData.legend && typeof initialData.legend === 'object') {
+        const fromLegend = Object.values(initialData.legend).map((entry) => ({
+          id: entry.id || `type-${entry.name?.toLowerCase() || Date.now()}`,
+          name: entry.name,
+          color: entry.color,
+          description: entry.description || 'Imported from legend'
+        }));
+        setConnectionTypes(fromLegend);
+      }
+      // Load layers if provided
+      if (Array.isArray(initialData.layers)) {
+        setLayers(initialData.layers);
+      }
       setShowNameModal(false);
     }
   }, [initialData]);
@@ -521,7 +537,7 @@ const VisualMindMapEditor = ({ onComplete, onCancel, initialData = null }) => {
         };
         return acc;
       }, {}),
-      levels: layers.length
+      levels: Math.max(...nodes.map(node => node.layer || 0)) + 1
     };
 
     onComplete(mindMapData);
@@ -888,6 +904,14 @@ const VisualMindMapEditor = ({ onComplete, onCancel, initialData = null }) => {
           {/* Render nodes */}
           {nodes.map(renderNode)}
         </div>
+        {/* Floating Save Button - always accessible */}
+        <button 
+          className="floating-save-btn"
+          onClick={handleSave}
+          title="Save Personal Mind Map"
+        >
+          💾 Save
+        </button>
       </div>
 
        {/* Context Menu */}
