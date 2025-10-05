@@ -9,6 +9,23 @@ const Home = () => {
   const [isDemoVisible, setIsDemoVisible] = useState(false);
   const [heroAnimationComplete, setHeroAnimationComplete] = useState(false);
 
+  // Generate 100 herd nodes
+  const herdNodes = React.useMemo(() => {
+    const colors = ['#FF6B6B', '#4ECDC4', '#95E1D3', '#F38181', '#AA96DA', '#FCBAD3', '#A8D8EA', '#FFD93D', '#FF6B9D', '#C44569', '#F8B500', '#6C5CE7', '#FD79A8', '#A29BFE', '#00B894', '#FDCB6E'];
+    const nodes = [];
+    
+    for (let i = 0; i < 100; i++) {
+      nodes.push({
+        id: i,
+        color: colors[i % colors.length],
+        top: `${Math.random() * 90 + 5}%`, // Random position between 5% and 95%
+        delay: `${(i * 0.02).toFixed(2)}s` // Stagger by 0.02s
+      });
+    }
+    
+    return nodes;
+  }, []);
+
   // Trigger hero animation completion after delay
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -42,26 +59,62 @@ const Home = () => {
 
   return (
     <div className="container">
+      {/* Background nodes that persist throughout the page */}
+      <div className="persistent-background-nodes">
+        <div className="bg-node" style={{ backgroundColor: '#FF6B9D', top: '5%', left: '8%', width: '50px', height: '50px', animationDelay: '0s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#6C5CE7', top: '12%', left: '88%', width: '40px', height: '40px', animationDelay: '0.5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#00B894', top: '18%', left: '15%', width: '45px', height: '45px', animationDelay: '1s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#FDCB6E', top: '25%', left: '92%', width: '55px', height: '55px', animationDelay: '1.5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#C44569', top: '32%', left: '5%', width: '48px', height: '48px', animationDelay: '2s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#F8B500', top: '38%', left: '85%', width: '42px', height: '42px', animationDelay: '2.5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#A29BFE', top: '45%', left: '10%', width: '52px', height: '52px', animationDelay: '3s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#FD79A8', top: '52%', left: '90%', width: '46px', height: '46px', animationDelay: '3.5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#4ECDC4', top: '58%', left: '12%', width: '44px', height: '44px', animationDelay: '4s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#95E1D3', top: '65%', left: '87%', width: '50px', height: '50px', animationDelay: '4.5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#FF6B6B', top: '72%', left: '8%', width: '48px', height: '48px', animationDelay: '5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#AA96DA', top: '78%', left: '93%', width: '43px', height: '43px', animationDelay: '5.5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#F38181', top: '85%', left: '15%', width: '47px', height: '47px', animationDelay: '6s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#A8D8EA', top: '92%', left: '85%', width: '45px', height: '45px', animationDelay: '6.5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#FFD93D', top: '95%', left: '10%', width: '41px', height: '41px', animationDelay: '7s' }}></div>
+        
+        {/* Right side nodes */}
+        <div className="bg-node" style={{ backgroundColor: '#FCBAD3', top: '8%', left: '70%', width: '38px', height: '38px', animationDelay: '0.7s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#FF6B9D', top: '22%', left: '25%', width: '44px', height: '44px', animationDelay: '1.4s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#6C5CE7', top: '35%', left: '75%', width: '49px', height: '49px', animationDelay: '2.1s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#00B894', top: '48%', left: '22%', width: '46px', height: '46px', animationDelay: '2.8s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#FDCB6E', top: '62%', left: '78%', width: '51px', height: '51px', animationDelay: '3.5s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#C44569', top: '75%', left: '28%', width: '43px', height: '43px', animationDelay: '4.2s' }}></div>
+        <div className="bg-node" style={{ backgroundColor: '#F8B500', top: '88%', left: '72%', width: '47px', height: '47px', animationDelay: '4.9s' }}></div>
+      </div>
+
       {/* Animated Hero Section */}
       <div className="animated-hero">
-        {/* Animated nodes that slide across */}
+        {/* Animated nodes that slide across like a herd */}
         <div className="node-container">
-          <div className="animated-node node-1" style={{ backgroundColor: '#FF6B6B' }}></div>
-          <div className="animated-node node-2" style={{ backgroundColor: '#4ECDC4' }}></div>
-          <div className="animated-node node-3" style={{ backgroundColor: '#95E1D3' }}></div>
-          <div className="animated-node node-4" style={{ backgroundColor: '#F38181' }}></div>
-          <div className="animated-node node-5" style={{ backgroundColor: '#AA96DA' }}></div>
-          <div className="animated-node node-6" style={{ backgroundColor: '#FCBAD3' }}></div>
-          <div className="animated-node node-7" style={{ backgroundColor: '#A8D8EA' }}></div>
-          <div className="animated-node node-8" style={{ backgroundColor: '#FFD93D' }}></div>
-          <div className="animated-node node-9" style={{ backgroundColor: '#FF6B9D' }}></div>
-          <div className="animated-node node-10" style={{ backgroundColor: '#C44569' }}></div>
-          <div className="animated-node node-11" style={{ backgroundColor: '#F8B500' }}></div>
-          <div className="animated-node node-12" style={{ backgroundColor: '#6C5CE7' }}></div>
-          <div className="animated-node node-13" style={{ backgroundColor: '#FD79A8' }}></div>
-          <div className="animated-node node-14" style={{ backgroundColor: '#A29BFE' }}></div>
-          <div className="animated-node node-15" style={{ backgroundColor: '#00B894' }}></div>
-          <div className="animated-node node-16" style={{ backgroundColor: '#FDCB6E' }}></div>
+          {/* 100 Herd nodes that pass by */}
+          {herdNodes.map((node) => (
+            <div 
+              key={node.id}
+              className="animated-node herd-node" 
+              style={{ 
+                backgroundColor: node.color, 
+                top: node.top, 
+                animationDelay: node.delay 
+              }}
+            ></div>
+          ))}
+          
+          {/* Background nodes that stay behind */}
+          <div className="animated-node background-stay node-bg-1" style={{ backgroundColor: '#FF6B9D', top: '15%', left: '10%' }}></div>
+          <div className="animated-node background-stay node-bg-2" style={{ backgroundColor: '#6C5CE7', top: '28%', left: '85%' }}></div>
+          <div className="animated-node background-stay node-bg-3" style={{ backgroundColor: '#00B894', top: '45%', left: '15%' }}></div>
+          <div className="animated-node background-stay node-bg-4" style={{ backgroundColor: '#FDCB6E', top: '62%', left: '80%' }}></div>
+          <div className="animated-node background-stay node-bg-5" style={{ backgroundColor: '#C44569', top: '75%', left: '20%' }}></div>
+          <div className="animated-node background-stay node-bg-6" style={{ backgroundColor: '#F8B500', top: '88%', left: '75%' }}></div>
+          <div className="animated-node background-stay node-bg-7" style={{ backgroundColor: '#A29BFE', top: '20%', left: '70%' }}></div>
+          <div className="animated-node background-stay node-bg-8" style={{ backgroundColor: '#FD79A8', top: '52%', left: '25%' }}></div>
+          <div className="animated-node background-stay node-bg-9" style={{ backgroundColor: '#4ECDC4', top: '35%', left: '90%' }}></div>
+          <div className="animated-node background-stay node-bg-10" style={{ backgroundColor: '#95E1D3', top: '68%', left: '12%' }}></div>
         </div>
 
         {/* Logo text that appears after animation */}
@@ -75,13 +128,13 @@ const Home = () => {
           <p className="hero-tagline">Collaborative mind mapping for your squad</p>
           <div className="home-hero-buttons">
             <Link to="/register" className="btn btn-primary">
-              Get Started
-            </Link>
+            Get Started
+          </Link>
             <Link to="/login" className="btn btn-secondary">
-              Login
-            </Link>
-          </div>
+            Login
+          </Link>
         </div>
+      </div>
 
         {/* Scroll indicator */}
         <div className={`scroll-indicator ${heroAnimationComplete ? 'visible' : ''}`}>
