@@ -280,3 +280,51 @@
   color: #ff5252;
 }
 
+/* Settings Modal bigger centered styles (reuses global modal classes from Owner.css) */
+.settings-modal {
+  position: fixed !important;
+  inset: 0 !important; /* top, right, bottom, left */
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 3000 !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.settings-modal .settings-modal-content {
+  max-width: 960px;
+  width: 90vw; /* ensure content can expand beyond sidebar width */
+}
+
+.settings-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.settings-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 107, 157, 0.35);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.settings-card h3 {
+  margin: 0 0 6px 0;
+  color: #FFE4ED;
+}
+
+.settings-card p {
+  margin: 0 0 12px 0;
+  color: rgba(255,255,255,0.8);
+}
+
+.settings-card.danger {
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.full-width {
+  width: 100%;
+}
+

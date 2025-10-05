@@ -228,13 +228,18 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
       />
 
       {showSettings && (
-        <div className="modal-overlay" onClick={() => !busy && setShowSettings(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Settings</h3>
-            <p>Danger zone actions. Proceed with caution.</p>
-            <div className="form-group">
-              <button
-                className="btn-secondary"
+        <div className="modal-overlay settings-modal" onClick={() => !busy && setShowSettings(false)}>
+          <div className="modal-content settings-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Settings</h2>
+              <button className="modal-close" onClick={() => !busy && setShowSettings(false)}>✕</button>
+            </div>
+            <div className="settings-options">
+              <div className="settings-card">
+                <h3>Delete All Boards</h3>
+                <p>Remove every board you own. This cannot be undone.</p>
+                <button
+                  className="btn-secondary full-width"
                 disabled={busy}
                 onClick={async () => {
                   if (!window.confirm('Delete ALL boards you own? This cannot be undone.')) return;
@@ -249,13 +254,15 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
                     setBusy(false);
                   }
                 }}
-              >
-                Delete All Boards
-              </button>
-            </div>
-            <div className="form-group">
-              <button
-                className="btn-primary"
+                >
+                  Delete All Boards
+                </button>
+              </div>
+              <div className="settings-card danger">
+                <h3>Delete Account</h3>
+                <p>Permanently delete your account and all boards you own.</p>
+                <button
+                  className="btn-primary full-width"
                 disabled={busy}
                 onClick={async () => {
                   if (!window.confirm('Delete your account and all owned boards? This cannot be undone.')) return;
@@ -271,12 +278,13 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
                     setBusy(false);
                   }
                 }}
-              >
-                Delete Account
-              </button>
+                >
+                  Delete Account
+                </button>
+              </div>
             </div>
-            <div className="modal-actions">
-              <button onClick={() => !busy && setShowSettings(false)}>Close</button>
+            <div className="modal-actions" style={{ justifyContent: 'center' }}>
+              <button className="btn-secondary" onClick={() => !busy && setShowSettings(false)}>Close</button>
             </div>
           </div>
         </div>
