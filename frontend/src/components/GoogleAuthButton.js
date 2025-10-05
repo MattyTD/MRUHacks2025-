@@ -21,8 +21,10 @@ const GoogleAuthButton = ({ text = 'Sign in with Google' }) => {
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
         gap: '8px',
-        margin: '10px 0'
+        margin: '10px 0',
+        width: '100%'
       }}
     >
       <svg width="20" height="20" viewBox="0 0 48 48" style={{ marginRight: 8 }}>
