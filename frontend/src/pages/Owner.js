@@ -17,6 +17,9 @@ const Owner = () => {
   const [newBoardDescription, setNewBoardDescription] = useState('');
   const [newBoardColor, setNewBoardColor] = useState('#667EEA');
   const [sidebarWidth, setSidebarWidth] = useState(80);
+  const [personalMindMaps, setPersonalMindMaps] = useState([]);
+  const [showMindMapSelector, setShowMindMapSelector] = useState(false);
+  const [boardType, setBoardType] = useState('personal'); // 'personal' or 'collective'
 
   // Board color options
   const colorOptions = [
@@ -32,6 +35,7 @@ const Owner = () => {
 
   useEffect(() => {
     fetchBoards();
+    fetchPersonalMindMaps();
     
     // Listen for sidebar resize events
     const handleSidebarResize = (e) => {
@@ -44,6 +48,18 @@ const Owner = () => {
       window.removeEventListener('sidebarResize', handleSidebarResize);
     };
   }, []);
+
+  const fetchPersonalMindMaps = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/auth/personal-mindmaps', {
+        headers: { 'x-auth-token': token }
+      });
+      setPersonalMindMaps(response.data.mindMaps || []);
+    } catch (err) {
+      console.error('Error fetching personal mind maps:', err);
+    }
+  };
 
   const fetchBoards = async () => {
     try {
@@ -62,15 +78,20 @@ const Owner = () => {
   };
 
   const handleSearch = (query) => {
-    if (!query.trim()) {
-      setFilteredBoards(boards);
-    } else {
-      const filtered = boards.filter(board => 
+    let filtered = boards;
+    
+    // Filter by board type first
+    filtered = filtered.filter(board => board.type === boardType);
+    
+    // Then filter by search query
+    if (query.trim()) {
+      filtered = filtered.filter(board => 
         board.title.toLowerCase().includes(query.toLowerCase()) ||
         (board.description && board.description.toLowerCase().includes(query.toLowerCase()))
       );
-      setFilteredBoards(filtered);
     }
+    
+    setFilteredBoards(filtered);
   };
 
   const handleCreateBoard = () => {
@@ -91,12 +112,20 @@ const Owner = () => {
       return;
     }
 
+    // Check if creating personal board without personal mind maps
+    if (boardType === 'personal' && personalMindMaps.length === 0) {
+      setShowCreateModal(false);
+      setShowMindMapSelector(true);
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('/api/boards', {
         title: newBoardTitle,
         description: newBoardDescription,
-        color: newBoardColor
+        color: newBoardColor,
+        type: boardType
       }, {
         headers: { 'x-auth-token': token }
       });
@@ -104,6 +133,9 @@ const Owner = () => {
       setBoards([response.data, ...boards]);
       setFilteredBoards([response.data, ...filteredBoards]);
       handleCloseModal();
+      
+      // Navigate to board editor
+      navigate(`/board/${response.data._id}`);
     } catch (err) {
       console.error('Error creating board:', err);
       setError('Failed to create board');
@@ -112,6 +144,28 @@ const Owner = () => {
 
   const handleBoardClick = (boardId) => {
     navigate(`/board/${boardId}`);
+  };
+
+  const handleDeleteBoard = async (boardId) => {
+    if (!window.confirm('Are you sure you want to delete this board? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/boards/${boardId}`, {
+        headers: { 'x-auth-token': token }
+      });
+      
+      // Remove board from state
+      setBoards(boards.filter(board => board._id !== boardId));
+      setFilteredBoards(filteredBoards.filter(board => board._id !== boardId));
+      
+      alert('Board deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting board:', err);
+      alert('Failed to delete board');
+    }
   };
 
   const formatDate = (date) => {
@@ -159,6 +213,39 @@ const Owner = () => {
           <p>Create and manage your mind map boards</p>
         </div>
 
+        {/* Board Type Toggle */}
+        <div className="board-type-toggle">
+          <div className="toggle-container">
+            <button 
+              className={`toggle-btn ${boardType === 'personal' ? 'active' : ''}`}
+              onClick={() => {
+                setBoardType('personal');
+                handleSearch(''); // Trigger filtering
+              }}
+            >
+              <span className="toggle-icon">🧠</span>
+              Personal Relations
+            </button>
+            <button 
+              className={`toggle-btn ${boardType === 'collective' ? 'active' : ''}`}
+              onClick={() => {
+                setBoardType('collective');
+                handleSearch(''); // Trigger filtering
+              }}
+            >
+              <span className="toggle-icon">👥</span>
+              Collective Effort
+            </button>
+          </div>
+          <div className="toggle-description">
+            {boardType === 'personal' ? (
+              <p>Create boards based on your personal mind map and connect with others through shared interests.</p>
+            ) : (
+              <p>Create collaborative boards where multiple users can contribute nodes and relationships.</p>
+            )}
+          </div>
+        </div>
+
         {error && <div className="error-message">{error}</div>}
 
         <div className="boards-grid">
@@ -193,6 +280,16 @@ const Owner = () => {
                 </div>
                 <div className="board-card-footer">
                   <span className="board-owner">by {board.owner?.name || 'You'}</span>
+                  <button 
+                    className="delete-board-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteBoard(board._id);
+                    }}
+                    title="Delete Board"
+                  >
+                    🗑️
+                  </button>
                 </div>
               </div>
             ))
@@ -214,6 +311,39 @@ const Owner = () => {
               </button>
             </div>
             <form onSubmit={handleSubmitBoard}>
+              <div className="form-group">
+                <label>Board Type</label>
+                <div className="board-type-selection">
+                  <label className="board-type-option">
+                    <input
+                      type="radio"
+                      name="boardType"
+                      value="personal"
+                      checked={boardType === 'personal'}
+                      onChange={(e) => setBoardType(e.target.value)}
+                    />
+                    <span className="board-type-label">
+                      <span className="board-type-icon">🧠</span>
+                      Personal Relations
+                      <small>Based on your personal mind map</small>
+                    </span>
+                  </label>
+                  <label className="board-type-option">
+                    <input
+                      type="radio"
+                      name="boardType"
+                      value="collective"
+                      checked={boardType === 'collective'}
+                      onChange={(e) => setBoardType(e.target.value)}
+                    />
+                    <span className="board-type-label">
+                      <span className="board-type-icon">👥</span>
+                      Collective Effort
+                      <small>Collaborative board creation</small>
+                    </span>
+                  </label>
+                </div>
+              </div>
               <div className="form-group">
                 <label>Board Title *</label>
                 <input
@@ -278,6 +408,29 @@ const Owner = () => {
           />
         ))}
       </div>
+
+      {/* Personal Mind Map Selector Modal */}
+      {showMindMapSelector && (
+        <div className="modal-overlay" onClick={() => setShowMindMapSelector(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Create Personal Mind Map First</h2>
+              <button className="modal-close" onClick={() => setShowMindMapSelector(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p>To create a Personal Relations board, you need to have at least one personal mind map.</p>
+              <p>Would you like to create a personal mind map now?</p>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowMindMapSelector(false)}>Cancel</button>
+              <button onClick={() => {
+                setShowMindMapSelector(false);
+                navigate('/personal-mindmaps');
+              }}>Create Mind Map</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

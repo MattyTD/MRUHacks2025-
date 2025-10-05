@@ -60,7 +60,7 @@ router.get('/:id', auth, async (req, res) => {
 // @access  Private
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, description, color } = req.body;
+    const { title, description, color, type } = req.body;
     
     if (!title || title.trim() === '') {
       return res.status(400).json({ message: 'Board title is required' });
@@ -71,6 +71,7 @@ router.post('/', auth, async (req, res) => {
       description: description || '',
       owner: req.user.id,
       color: color || '#667EEA',
+      type: type || 'personal',
       nodes: []
     });
     
@@ -102,11 +103,14 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this board' });
     }
     
-    const { title, description, nodes, isPublic, color } = req.body;
+    const { title, description, nodes, edges, theme, importedFrom, isPublic, color } = req.body;
     
     if (title !== undefined) board.title = title;
     if (description !== undefined) board.description = description;
     if (nodes !== undefined) board.nodes = nodes;
+    if (edges !== undefined) board.edges = edges;
+    if (theme !== undefined) board.theme = theme;
+    if (importedFrom !== undefined) board.importedFrom = importedFrom;
     if (isPublic !== undefined) board.isPublic = isPublic;
     if (color !== undefined) board.color = color;
     

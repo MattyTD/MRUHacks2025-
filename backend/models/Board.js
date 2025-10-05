@@ -22,11 +22,30 @@ const BoardSchema = new mongoose.Schema({
   nodes: [{
     id: String,
     label: String,
-    tags: [String],
-    group: String,
+    description: String,
+    color: String,
     x: Number,
-    y: Number
+    y: Number,
+    tags: [String],
+    group: String
   }],
+  edges: [{
+    id: String,
+    from: String,
+    to: String,
+    type: String,
+    color: String,
+    label: String
+  }],
+  theme: {
+    type: String,
+    enum: ['dark', 'light'],
+    default: 'dark'
+  },
+  importedFrom: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User.personalMindMaps'
+  },
   isPublic: {
     type: Boolean,
     default: false
@@ -34,6 +53,11 @@ const BoardSchema = new mongoose.Schema({
   color: {
     type: String,
     default: '#667EEA'
+  },
+  type: {
+    type: String,
+    enum: ['personal', 'collective'],
+    default: 'personal'
   },
   createdAt: {
     type: Date,

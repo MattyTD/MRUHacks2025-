@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import DemoMindMap from '../components/DemoMindMap';
+import { useAuth } from '../contexts/AuthContext';
 import './Home.css';
 import Squadpng from '../assets/SquadGoalsBeta.png';
 
 const Home = () => {
+  const { user } = useAuth();
   const [currentLayer, setCurrentLayer] = useState('group');
   const [isDemoVisible, setIsDemoVisible] = useState(false);
   const [heroAnimationComplete, setHeroAnimationComplete] = useState(false);
@@ -124,17 +126,45 @@ const Home = () => {
         </div>
 
         {/* Content that fades in after animation */}
-        <div className={`hero-content ${heroAnimationComplete ? 'visible' : ''}`}>
-          <p className="hero-tagline">Collaborative mind mapping for your squad</p>
-          <div className="home-hero-buttons">
-            <Link to="/register" className="btn btn-primary">
-            Get Started
-          </Link>
-            <Link to="/login" className="btn btn-secondary">
-            Login
-          </Link>
+        <div className={`hero-content ${heroAnimationComplete ? 'visible' : ''} ${user ? 'logged-in' : ''}`}>
+          {user ? (
+            <>
+              <div className="welcome-user-section">
+                <div className="welcome-profile-image">
+                  {user.profileImage ? (
+                    <img 
+                      src={`http://localhost:5001${user.profileImage}`} 
+                      alt="Profile" 
+                      className="welcome-profile-img"
+                    />
+                  ) : (
+                    <div className="welcome-profile-placeholder">
+                      <span>{user.name?.charAt(0)?.toUpperCase()}</span>
+                    </div>
+                  )}
+                </div>
+                <p className="hero-tagline">Welcome back, {user.name}! Ready to continue building your squad's mind map?</p>
+              </div>
+              <div className="home-hero-buttons">
+                <Link to="/owner" className="btn btn-primary">
+                  Go to Board Hub
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="hero-tagline">Collaborative mind mapping for your squad</p>
+              <div className="home-hero-buttons">
+                <Link to="/register" className="btn btn-primary">
+                  Get Started
+                </Link>
+                <Link to="/login" className="btn btn-secondary">
+                  Login
+                </Link>
+              </div>
+            </>
+          )}
         </div>
-      </div>
 
         {/* Scroll indicator */}
         <div className={`scroll-indicator ${heroAnimationComplete ? 'visible' : ''}`}>
@@ -221,16 +251,30 @@ const Home = () => {
 
         {/* Call to Action */}
         <div className="demo-cta">
-          <h3>Ready to Build Your Squad's Mind Map?</h3>
-          <p>Join your friends and start creating connections that matter.</p>
-          <div className="demo-cta-buttons">
-            <Link to="/register" className="btn btn-primary">
-              Start Your Squad
-            </Link>
-            <Link to="/login" className="btn btn-secondary">
-              Join Existing Squad
-            </Link>
-          </div>
+          {user ? (
+            <>
+              <h3>Ready to Continue Building Your Squad's Mind Map?</h3>
+              <p>Jump back into your boards and keep creating connections that matter.</p>
+              <div className="demo-cta-buttons">
+                <Link to="/owner" className="btn btn-primary">
+                  Go to Board Hub
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3>Ready to Build Your Squad's Mind Map?</h3>
+              <p>Join your friends and start creating connections that matter.</p>
+              <div className="demo-cta-buttons">
+                <Link to="/register" className="btn btn-primary">
+                  Start Your Squad
+                </Link>
+                <Link to="/login" className="btn btn-secondary">
+                  Join Existing Squad
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
