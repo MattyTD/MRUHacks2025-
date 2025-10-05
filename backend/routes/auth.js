@@ -5,6 +5,11 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 
+// Check if JWT_SECRET is available
+if (!process.env.JWT_SECRET) {
+  console.error('ERROR: JWT_SECRET is not defined! Authentication will fail.');
+}
+
 const router = express.Router();
 
 // @route   POST /api/auth/register
@@ -57,7 +62,7 @@ router.post('/register', [
 
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
       if (err) {
-        console.error('❌ JWT Sign Error (Register):', err);
+        console.error('JWT signing error:', err);
         return res.status(500).json({ message: 'Token generation failed' });
       }
       res.json({ token });
@@ -111,7 +116,7 @@ router.post('/login', [
 
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
       if (err) {
-        console.error('❌ JWT Sign Error (Login):', err);
+        console.error('JWT signing error:', err);
         return res.status(500).json({ message: 'Token generation failed' });
       }
       res.json({ token });
