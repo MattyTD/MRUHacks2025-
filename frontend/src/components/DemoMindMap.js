@@ -17,6 +17,8 @@ const DemoMindMap = ({
   const [activeGroupNodeId, setActiveGroupNodeId] = useState(null);
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const lastClickRef = useRef({ nodeId: null, time: 0 });
+  const isDoubleClickTransitionRef = useRef(false);
 
   // Constants for demo configuration
   const PERSONAL_LAYER_ZOOM_THRESHOLD = 0.5;
@@ -347,7 +349,11 @@ const DemoMindMap = ({
       hideEdgesOnDrag: false,
       hideEdgesOnZoom: false,
       zoomView: true,
-      dragView: true
+      dragView: true,
+      navigationButtons: false,
+      keyboard: {
+        enabled: false
+      }
     },
     layout: {
       improvedLayout: true,
@@ -392,6 +398,64 @@ const DemoMindMap = ({
       setHoveredNodeId(null);
     });
 
+    // Event listener for click - detect double-click manually
+    networkRef.current.on('click', (params) => {
+      if (params.nodes.length > 0) {
+        const nodeId = params.nodes[0];
+        const node = nodesRef.current.get(nodeId);
+        const currentTime = new Date().getTime();
+        
+        console.log('Click detected:', nodeId, 'isPersonalLayer:', isPersonalLayer, 'node.group:', node?.group);
+        
+        // Check if this is a double-click (within 300ms of last click on same node)
+        const isDoubleClick = 
+          lastClickRef.current.nodeId === nodeId && 
+          (currentTime - lastClickRef.current.time) < 300;
+        
+        if (isDoubleClick && !isPersonalLayer && node && node.group === 'user') {
+          console.log('🎯 Double-click detected on group node! Transitioning to personal layer for:', nodeId);
+          
+          // Prevent any further clicks during transition
+          lastClickRef.current = { nodeId: null, time: 0 };
+          
+          // Set flag to prevent zoom-based switching during double-click transition
+          isDoubleClickTransitionRef.current = true;
+          
+          // Set the active group node FIRST (this is critical!)
+          setActiveGroupNodeId(nodeId);
+          
+          // Then trigger layer change
+          if (onLayerChange) {
+            console.log('Calling onLayerChange with "personal"');
+            onLayerChange('personal');
+          } else {
+            console.error('onLayerChange callback is not defined!');
+          }
+          
+          // Zoom into the node with animation to a level ABOVE the threshold
+          setTimeout(() => {
+            if (networkRef.current) {
+              networkRef.current.focus(nodeId, {
+                scale: 2.0, // This is above GROUP_LAYER_ZOOM_THRESHOLD (1.5)
+                animation: {
+                  duration: 600,
+                  easingFunction: 'easeInOutQuad'
+                }
+              });
+            }
+            
+            // Clear the transition flag after animation completes
+            setTimeout(() => {
+              isDoubleClickTransitionRef.current = false;
+            }, 650);
+          }, 100);
+        } else {
+          // Store this click for double-click detection
+          lastClickRef.current = { nodeId, time: currentTime };
+        }
+      }
+    });
+
     // Event listeners for zoom
     networkRef.current.on('zoom', (params) => {
       const newZoom = params.scale;
@@ -410,6 +474,9 @@ const DemoMindMap = ({
   // Handle zoom-based layer switching
   useEffect(() => {
     if (!onLayerChange) return;
+    
+    // Don't auto-switch during double-click transition
+    if (isDoubleClickTransitionRef.current) return;
 
     // Auto-switch layers based on zoom level AND if hovering over a node
     if (isPersonalLayer && currentZoom < PERSONAL_LAYER_ZOOM_THRESHOLD) {
@@ -561,6 +628,17 @@ const DemoMindMap = ({
     return getUniqueTags(nodeData);
   }, [isPersonalLayer, activeGroupNodeId, getPersonalNodes, getGroupNodes]);
 
+  const handleRecenter = () => {
+    if (networkRef.current) {
+      networkRef.current.fit({
+        animation: {
+          duration: 600,
+          easingFunction: 'easeInOutQuad'
+        }
+      });
+    }
+  };
+
   return (
     <div className="demo-mindmap-container">
       <div 
@@ -585,6 +663,14 @@ const DemoMindMap = ({
           : 'Hover over a user\'s mind node and scroll to zoom in'
         }
       </div>
+
+      {/* Recenter button */}
+      <button className="recenter-button" onClick={handleRecenter} title="Recenter view">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
     </div>
   );
 };
