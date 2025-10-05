@@ -21,19 +21,16 @@
     "express",
     "mongodb"
   ],
-  "keywords": [
-    "mern",
-    "react",
-    "node",
-    "express",
-    "mongodb"
-  ],
   "author": "MRUHacks2025",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
   "dependencies": {
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "nodemailer": "^7.0.6",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "uuid": "^13.0.0"
   }
 }

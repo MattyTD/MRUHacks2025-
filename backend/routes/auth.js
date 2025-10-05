@@ -5,6 +5,8 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { createSystemNodeTypes } = require('../services/systemNodeTypeService');
 const auth = require('../middleware/auth');
+const passport = require('../middleware/googleAuth');
+const { sendVerificationEmail } = require('../services/emailService');
 
 // Check if JWT_SECRET is available
 if (!process.env.JWT_SECRET) {
@@ -54,23 +56,10 @@ router.post('/register', [
 
 
   await user.save();
-  // Create default system node types for new user
-  await createSystemNodeTypes(user.id);
 
-    // Create JWT token
-    const payload = {
-      user: {
-        id: user.id
-      }
-    };
-
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
-      if (err) {
-        console.error('JWT signing error:', err);
-        return res.status(500).json({ message: 'Token generation failed' });
-      }
-      res.json({ token });
-    });
+  // Send verification email
+  await sendVerificationEmail(user, req.headers.origin || 'http://localhost:5001');
+  return res.status(200).json({ message: 'Registration successful. Please check your email to verify your account.' });
   } catch (error) {
     console.error('❌ Registration Error:', error.message);
     console.error('Full error:', error);
@@ -107,8 +96,15 @@ router.post('/login', [
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
+    if (!user.googleId) {
+      const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+  }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: 'Please verify your email before logging in.' });
     }
 
     // Create JWT token
@@ -141,6 +137,35 @@ router.get('/me', auth, async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error(error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Google OAuth login
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// Google OAuth callback
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login', session: false }), async (req, res) => {
+  const payload = { user: { id: req.user.id } };
+  jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
+    if (err) throw err;
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?token=${token}`);
+  });
+});
+
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const user = await User.findOne({ verificationToken: req.params.token });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired verification token.' });
+    }
+    user.isVerified = true;
+    user.verificationToken = null;
+    await user.save();
+    // Create default system node types for new user after verification
+    await createSystemNodeTypes(user.id);
+    res.json({ message: 'Email verified successfully. You can now log in.' });
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });

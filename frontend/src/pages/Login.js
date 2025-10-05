@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -38,7 +39,7 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
+  <div className="login-container">
       {/* Background nodes */}
       <div className="auth-background-nodes">
         {/* Left side nodes */}
@@ -119,6 +120,10 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+
+        <div style={{ textAlign: 'center', margin: '1rem 0' }}>
+          <GoogleAuthButton text="Sign in with Google" />
+        </div>
         
         <p style={{ textAlign: 'center', marginTop: '1rem' }}>
           Don't have an account? <Link to="/register">Register here</Link>
