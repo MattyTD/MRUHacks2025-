@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const { createSystemNodeTypes } = require('../services/systemNodeTypeService');
 const auth = require('../middleware/auth');
 
 // Check if JWT_SECRET is available
@@ -45,7 +46,10 @@ router.post('/register', [
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
-    await user.save();
+
+  await user.save();
+  // Create default system node types for new user
+  await createSystemNodeTypes(user.id);
 
     // Create JWT token
     const payload = {
