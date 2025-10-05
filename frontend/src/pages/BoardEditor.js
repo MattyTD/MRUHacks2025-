@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import './BoardEditor.css';
+import VisualMindMapEditor from '../components/VisualMindMapEditor';
 
 const BoardEditor = () => {
   const { id } = useParams();
@@ -25,6 +26,9 @@ const BoardEditor = () => {
   const [personalMindMaps, setPersonalMindMaps] = useState([]);
   const [showMindMapSelector, setShowMindMapSelector] = useState(false);
   const [legend, setLegend] = useState({});
+  const channelRef = useRef(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmails, setInviteEmails] = useState('');
   const [autoRouted, setAutoRouted] = useState(false);
 
   // Ensure nodes have positions; if missing, lay them out in concentric circles by layer
@@ -68,6 +72,19 @@ const BoardEditor = () => {
     if (board?.type === 'personal') {
       fetchPersonalMindMaps();
     }
+    // Setup broadcast channel for simple realtime collab on collective boards
+    const ch = new BroadcastChannel(`board-${id}`);
+    channelRef.current = ch;
+    ch.onmessage = (ev) => {
+      const { type, payload } = ev.data || {};
+      if (!payload) return;
+      if (type === 'nodes:update') setNodes(payload);
+      if (type === 'edges:update') setEdges(payload);
+      if (type === 'theme:update') setTheme(payload);
+    };
+    return () => {
+      try { ch.close(); } catch (_) {}
+    };
   }, [id]);
 
   const fetchBoard = async () => {
@@ -169,11 +186,16 @@ const BoardEditor = () => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    setNodes(nodes.map(node => 
+    const updated = nodes.map(node => 
       node.id === selectedNode.id 
         ? { ...node, x: x - dragOffset.x, y: y - dragOffset.y }
         : node
-    ));
+    );
+    setNodes(updated);
+    // broadcast for collective boards
+    if (board?.type === 'collective' && channelRef.current) {
+      channelRef.current.postMessage({ type: 'nodes:update', payload: updated });
+    }
   };
 
   const handleNodeMouseDown = (e, node) => {
@@ -202,6 +224,9 @@ const BoardEditor = () => {
     );
 
     setNodes(updatedNodes);
+    if (board?.type === 'collective' && channelRef.current) {
+      channelRef.current.postMessage({ type: 'nodes:update', payload: updatedNodes });
+    }
     setShowNodeModal(false);
     setSelectedNode(null);
     await saveBoard({ nodes: updatedNodes });
@@ -220,6 +245,9 @@ const BoardEditor = () => {
 
     const updatedEdges = [...edges, newEdge];
     setEdges(updatedEdges);
+    if (board?.type === 'collective' && channelRef.current) {
+      channelRef.current.postMessage({ type: 'edges:update', payload: updatedEdges });
+    }
     setShowEdgeModal(false);
     setEdgeForm({ from: '', to: '', type: '', color: '#4FD1C5' });
     await saveBoard({ edges: updatedEdges });
@@ -239,6 +267,9 @@ const BoardEditor = () => {
 
   const handleThemeChange = async (newTheme) => {
     setTheme(newTheme);
+    if (board?.type === 'collective' && channelRef.current) {
+      channelRef.current.postMessage({ type: 'theme:update', payload: newTheme });
+    }
     await saveBoard({ theme: newTheme });
   };
 
@@ -335,6 +366,76 @@ const BoardEditor = () => {
     );
   }
 
+  // REUSE VisualMindMapEditor for collective boards
+  if (board?.type === 'collective') {
+    const initialData = {
+      name: board?.title || '',
+      context: 'professional',
+      nodes,
+      edges,
+      connectionTypes: Object.values(legend || {}).map(v => ({ id: v.id, name: v.name, color: v.color })),
+      layers: [],
+    };
+
+    const handleComplete = async (data) => {
+      try {
+        await axios.put(`/api/boards/${id}`, { nodes: data.nodes, edges: data.edges, legend: data.legend, theme });
+      } catch (e) {}
+      const url = `/generated-map?mid=${encodeURIComponent(id)}`;
+      try { sessionStorage.setItem(`generatedMindMap:${id}`, JSON.stringify({ _id: id, name: data.name, context: data.context, nodes: data.nodes, edges: data.edges, legend: data.legend, connectionTypes: data.connectionTypes })); } catch (_) {}
+      window.open(url, '_blank', 'noopener');
+    };
+
+    return (
+      <>
+        <VisualMindMapEditor
+          onComplete={handleComplete}
+          onCancel={() => navigate('/owner')}
+          initialData={initialData}
+        />
+        {/* Floating Invite button for collective boards */}
+        <button
+          style={{ position: 'fixed', top: 18, right: 160, zIndex: 1500 }}
+          className="toolbar-btn"
+          onClick={() => setShowInviteModal(true)}
+        >
+          ✉️ Invite
+        </button>
+        {/* Invite Modal */}
+        {showInviteModal && (
+          <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h3>Invite Collaborators</h3>
+              <p>Share this editor link so others can edit in real-time:</p>
+              <div className="form-group">
+                <input type="text" readOnly value={`${window.location.origin}/board/${id}`} onFocus={(e) => e.target.select()} />
+              </div>
+              <p>Or enter emails (comma separated) to send invites:</p>
+              <div className="form-group">
+                <textarea rows="3" placeholder="user1@example.com, user2@example.com" value={inviteEmails} onChange={(e) => setInviteEmails(e.target.value)} />
+              </div>
+              <div className="modal-actions">
+                <button onClick={() => setShowInviteModal(false)}>Close</button>
+                <button onClick={async () => {
+                  const emails = inviteEmails.split(',').map(e => e.trim()).filter(Boolean);
+                  if (emails.length === 0) { setShowInviteModal(false); return; }
+                  try {
+                    await axios.post(`/api/boards/${id}/invite`, { emails });
+                    alert('Invites sent (if email service is configured).');
+                  } catch (err) {
+                    console.error('Invite error', err);
+                    alert('Could not send invites automatically. Share the link instead.');
+                  }
+                  setShowInviteModal(false);
+                }}>Send Invites</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <div className={`board-editor-container ${theme}`}>
       <div className="board-editor-header">
@@ -388,11 +489,36 @@ const BoardEditor = () => {
         </div>
         
         <div className="toolbar-right">
+          {board?.type === 'collective' && (
+            <button 
+              className="toolbar-btn"
+              onClick={() => setShowInviteModal(true)}
+            >
+              ✉️ Invite
+            </button>
+          )}
           <button 
             className="toolbar-btn save-btn"
-            onClick={() => saveBoard({ nodes, edges })}
+            onClick={async () => {
+              await saveBoard({ nodes, edges, legend });
+              if (board?.type === 'collective') {
+                const mapLike = {
+                  _id: board._id,
+                  name: board.title || 'Generated Map',
+                  context: 'professional',
+                  nodes,
+                  edges,
+                  legend,
+                  connectionTypes: []
+                };
+                const url = `/generated-map?mid=${encodeURIComponent(board._id)}`;
+                // Also push state to session so the viewer can render immediately in the new tab
+                try { sessionStorage.setItem(`generatedMindMap:${board._id}`, JSON.stringify(mapLike)); } catch (_) {}
+                window.open(url, '_blank', 'noopener');
+              }
+            }}
           >
-            💾 Save Board
+            {board?.type === 'collective' ? '⚡ Save & Generate' : '💾 Save Board'}
           </button>
         </div>
       </div>
@@ -500,6 +626,48 @@ const BoardEditor = () => {
             <div className="modal-actions">
               <button onClick={() => setShowEdgeModal(false)}>Cancel</button>
               <button onClick={handleEdgeSubmit}>Add Connection</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Collaborators Modal */}
+      {showInviteModal && (
+        <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Invite Collaborators</h3>
+            <p>Share this editor link so others can edit in real-time:</p>
+            <div className="form-group">
+              <input
+                type="text"
+                readOnly
+                value={`${window.location.origin}/board/${id}`}
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
+            <p>Or enter emails (comma separated) to send invites:</p>
+            <div className="form-group">
+              <textarea
+                rows="3"
+                placeholder="user1@example.com, user2@example.com"
+                value={inviteEmails}
+                onChange={(e) => setInviteEmails(e.target.value)}
+              />
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowInviteModal(false)}>Close</button>
+              <button onClick={async () => {
+                const emails = inviteEmails.split(',').map(e => e.trim()).filter(Boolean);
+                if (emails.length === 0) { setShowInviteModal(false); return; }
+                try {
+                  await axios.post(`/api/boards/${id}/invite`, { emails });
+                  alert('Invites sent (if email service is configured).');
+                } catch (err) {
+                  console.error('Invite error', err);
+                  alert('Could not send invites automatically. Share the link instead.');
+                }
+                setShowInviteModal(false);
+              }}>Send Invites</button>
             </div>
           </div>
         </div>

@@ -24,6 +24,17 @@ const Owner = () => {
   const [pendingOpenBoardId, setPendingOpenBoardId] = useState(null);
   const [boardType, setBoardType] = useState('personal'); // 'personal' or 'collective'
 
+  // Safe color fallback + helpers
+  const withFallbackColor = (color) => (typeof color === 'string' && color.trim() ? color : '#667EEA');
+  const hexToRgba = (hex, alpha) => {
+    const safe = withFallbackColor(hex).replace('#','');
+    const r = parseInt(safe.substring(0,2), 16);
+    const g = parseInt(safe.substring(2,4), 16);
+    const b = parseInt(safe.substring(4,6), 16);
+    const a = Math.min(Math.max(alpha, 0), 1);
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  };
+
   // Board color options
   const colorOptions = [
     '#667EEA', // Purple
@@ -344,9 +355,9 @@ const Owner = () => {
                 key={board._id}
                 className="board-card"
                 onClick={() => handleBoardClick(board._id)}
-                style={{ borderColor: board.color }}
+                style={{ borderColor: withFallbackColor(board.color) }}
               >
-                <div className="board-card-header" style={{ background: `linear-gradient(135deg, ${board.color}40, ${board.color}20)` }}>
+                <div className="board-card-header" style={{ background: `linear-gradient(135deg, ${hexToRgba(board.color, 0.25)}, ${hexToRgba(board.color, 0.12)})` }}>
                   <h3>{board.title}</h3>
                 </div>
                 <div className="board-card-body">

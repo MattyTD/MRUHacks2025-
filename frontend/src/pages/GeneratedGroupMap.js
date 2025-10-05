@@ -16,20 +16,48 @@ const GeneratedGroupMap = () => {
   // Ensure we always render the map matching the URL mid
   useEffect(() => {
     const load = async () => {
-      if (queryMid && (!mapData || mapData._id !== queryMid)) {
-        try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get('/api/auth/personal-mindmaps', { headers: { 'x-auth-token': token } });
-          const maps = res.data?.mindMaps || [];
-          const found = maps.find(m => (m._id || '') === queryMid) || null;
-          if (found) setMapData(found);
-        } catch (_) {
-          // ignore fetch errors; page will show placeholder if needed
+      if (!queryMid) return;
+      if (mapData && mapData._id === queryMid) return;
+
+      // 1) same-tab immediate open
+      try {
+        const fromSession = sessionStorage.getItem(`generatedMindMap:${queryMid}`);
+        if (fromSession) {
+          setMapData(JSON.parse(fromSession));
+          return;
         }
-      }
+      } catch (_) {}
+
+      // 2) personal mind maps source
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('/api/auth/personal-mindmaps', { headers: { 'x-auth-token': token } });
+        const maps = res.data?.mindMaps || [];
+        const found = maps.find(m => (m._id || '') === queryMid) || null;
+        if (found) { setMapData(found); return; }
+      } catch (_) {}
+
+      // 3) fallback to board by id (collective board) and adapt shape
+      try {
+        const boardRes = await axios.get(`/api/boards/${queryMid}`);
+        const b = boardRes.data || null;
+        if (b) {
+          const adapted = {
+            _id: b._id || queryMid,
+            name: b.title || 'Generated Map',
+            context: 'professional',
+            nodes: b.nodes || [],
+            edges: b.edges || [],
+            legend: b.legend || {},
+            connectionTypes: b.connectionTypes || []
+          };
+          setMapData(adapted);
+          return;
+        }
+      } catch (_) {}
     };
     load();
-  }, [queryMid]);
+  }, [queryMid, mapData]);
 
   const networkRef = useRef(null);
   const containerRef = useRef(null);
