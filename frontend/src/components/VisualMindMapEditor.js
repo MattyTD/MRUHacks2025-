@@ -511,12 +511,13 @@ const VisualMindMapEditor = ({ onComplete, onCancel, initialData = null }) => {
       context: mindMapContext,
       nodes,
       edges,
+      connectionTypes,
       layers,
-      legend: layers.reduce((acc, layer) => {
-        acc[layer.name.toLowerCase()] = {
-          name: layer.name,
-          color: layer.color,
-          description: layer.description
+      legend: connectionTypes.reduce((acc, connectionType) => {
+        acc[connectionType.name.toLowerCase()] = {
+          name: connectionType.name,
+          color: connectionType.color,
+          id: connectionType.id
         };
         return acc;
       }, {}),
@@ -524,7 +525,7 @@ const VisualMindMapEditor = ({ onComplete, onCancel, initialData = null }) => {
     };
 
     onComplete(mindMapData);
-  }, [mindMapName, mindMapContext, nodes, edges, layers, onComplete]);
+  }, [mindMapName, mindMapContext, nodes, edges, connectionTypes, layers, onComplete]);
 
   // Add mouse event listeners for legend resizing
   useEffect(() => {

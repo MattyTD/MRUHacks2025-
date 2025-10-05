@@ -27,9 +27,6 @@ const BoardEditor = () => {
 
   useEffect(() => {
     fetchBoard();
-    if (board?.type === 'personal') {
-      fetchPersonalMindMaps();
-    }
   }, [id]);
 
   const fetchBoard = async () => {
@@ -39,6 +36,11 @@ const BoardEditor = () => {
       setNodes(response.data.nodes || []);
       setEdges(response.data.edges || []);
       setTheme(response.data.theme || 'dark');
+      
+      // Fetch personal mind maps if this is a personal board
+      if (response.data.type === 'personal') {
+        fetchPersonalMindMaps();
+      }
     } catch (err) {
       console.error('Error fetching board:', err);
       setError('Failed to load board');
