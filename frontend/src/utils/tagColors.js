@@ -2,31 +2,33 @@
 // Provides consistent color mapping for tags across the application
 
 const TAG_COLORS = {
-  // Hobbies
-  'hobby': '#FF6B6B',
-  'creative': '#FF8C42',
-  'art': '#FF4757',
-  'music': '#FF6348',
-  'gaming': '#FF9FF3',
-  'sports': '#FFA502',
+  // Hobbies & Interests
+  'hobby': '#FF6B6B',        // Coral Red
+  'creative': '#FF8C42',     // Orange
+  'art': '#E74C3C',          // Red
+  'music': '#E91E63',        // Pink
+  'gaming': '#9B59B6',       // Purple
+  'sports': '#F39C12',       // Gold
+  'cooking': '#95A5A6',      // Gray
   
-  // Skills
-  'skill': '#96CEB4',
-  'technology': '#5F27CD',
-  'career': '#00D2D3',
-  'programming': '#54A0FF',
+  // Skills & Career
+  'skill': '#16A085',        // Teal
+  'technology': '#6C5CE7',   // Indigo
+  'career': '#00CED1',       // Dark Turquoise
+  'programming': '#3498DB',  // Blue
+  'photography': '#7F8C8D',  // Steel Gray
   
-  // Memories
-  'memory': '#45B7D1',
-  'travel': '#48DBF B',
-  'culture': '#0ABDE3',
+  // Memories & Experiences
+  'memory': '#1ABC9C',       // Turquoise
+  'travel': '#2ECC71',       // Green
+  'culture': '#00B894',      // Emerald
   
-  // Life
-  'life-skill': '#10AC84',
-  'entertainment': '#EE5A6F',
+  // Entertainment & Life
+  'entertainment': '#FD79A8', // Light Pink
+  'life-skill': '#10AC84',    // Sea Green
   
   // Default fallback color
-  'default': '#95A5A6'
+  'default': '#34495E'        // Dark Blue Gray
 };
 
 /**

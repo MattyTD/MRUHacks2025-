@@ -21,6 +21,13 @@
     "express",
     "mongodb"
   ],
+  "keywords": [
+    "mern",
+    "react",
+    "node",
+    "express",
+    "mongodb"
+  ],
   "author": "MRUHacks2025",
   "license": "MIT",
   "devDependencies": {
