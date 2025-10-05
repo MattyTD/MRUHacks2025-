@@ -224,6 +224,11 @@
   animation: slideUp 0.3s ease;
 }
 
+/* Wider modal variant for color picker so all swatches fit inside */
+.color-picker-modal {
+  max-width: 640px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;

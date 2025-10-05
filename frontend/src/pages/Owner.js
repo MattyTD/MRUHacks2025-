@@ -14,6 +14,7 @@ const Owner = () => {
   const [newBoardTitle, setNewBoardTitle] = useState('');
   const [newBoardDescription, setNewBoardDescription] = useState('');
   const [newBoardColor, setNewBoardColor] = useState('#667EEA');
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(80);
   const [personalMindMaps, setPersonalMindMaps] = useState([]);
   const [showMindMapSelector, setShowMindMapSelector] = useState(false);
@@ -470,16 +471,25 @@ const Owner = () => {
               </div>
               <div className="form-group">
                 <label>Board Color</label>
-                <div className="color-picker">
-                  {colorOptions.map(color => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`color-option ${newBoardColor === color ? 'selected' : ''}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setNewBoardColor(color)}
-                    />
-                  ))}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span
+                    title="Current color"
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      border: '2px solid #fff',
+                      boxShadow: '0 0 10px rgba(255,255,255,0.25)',
+                      background: newBoardColor
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setShowColorPicker(true)}
+                  >
+                    Choose Color
+                  </button>
                 </div>
               </div>
               <div className="modal-actions">
@@ -491,6 +501,32 @@ const Owner = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Color Picker Modal */}
+      {showColorPicker && (
+        <div className="modal-overlay" onClick={() => setShowColorPicker(false)}>
+          <div className="modal-content color-picker-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Select Board Color</h2>
+              <button className="modal-close" onClick={() => setShowColorPicker(false)}>✕</button>
+            </div>
+            <div className="color-picker" style={{ marginTop: '10px' }}>
+              {colorOptions.map(color => (
+                <button
+                  key={color}
+                  type="button"
+                  className={`color-option ${newBoardColor === color ? 'selected' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => { setNewBoardColor(color); setShowColorPicker(false); }}
+                />
+              ))}
+            </div>
+            <div className="modal-actions" style={{ justifyContent: 'center' }}>
+              <button className="btn-secondary" onClick={() => setShowColorPicker(false)}>Close</button>
+            </div>
           </div>
         </div>
       )}
