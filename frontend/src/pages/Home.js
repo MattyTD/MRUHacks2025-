@@ -4,8 +4,18 @@ import DemoMindMap from '../components/DemoMindMap';
 import './Home.css';
 
 const Home = () => {
-  const [currentLayer, setCurrentLayer] = useState('personal');
+  const [currentLayer, setCurrentLayer] = useState('group');
   const [isDemoVisible, setIsDemoVisible] = useState(false);
+  const [heroAnimationComplete, setHeroAnimationComplete] = useState(false);
+
+  // Trigger hero animation completion after delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHeroAnimationComplete(true);
+    }, 2000); // Animation completes after 2 seconds
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle scroll to show demo
   useEffect(() => {
@@ -31,16 +41,43 @@ const Home = () => {
 
   return (
     <div className="container">
-      <div className="home-hero">
-        <h1>Squad Goals</h1>
-        <p>Collaborative mind mapping for your squad - connect ideas, memories, and interests</p>
-        <div className="home-hero-buttons">
-          <Link to="/register" className="btn btn-primary">
-            Get Started
-          </Link>
-          <Link to="/login" className="btn btn-secondary">
-            Login
-          </Link>
+      {/* Animated Hero Section */}
+      <div className="animated-hero">
+        {/* Animated nodes that slide across */}
+        <div className="node-container">
+          <div className="animated-node node-1" style={{ backgroundColor: '#FF6B6B' }}></div>
+          <div className="animated-node node-2" style={{ backgroundColor: '#4ECDC4' }}></div>
+          <div className="animated-node node-3" style={{ backgroundColor: '#95E1D3' }}></div>
+          <div className="animated-node node-4" style={{ backgroundColor: '#F38181' }}></div>
+          <div className="animated-node node-5" style={{ backgroundColor: '#AA96DA' }}></div>
+          <div className="animated-node node-6" style={{ backgroundColor: '#FCBAD3' }}></div>
+          <div className="animated-node node-7" style={{ backgroundColor: '#A8D8EA' }}></div>
+          <div className="animated-node node-8" style={{ backgroundColor: '#FFD93D' }}></div>
+        </div>
+
+        {/* Logo text that appears after animation */}
+        <div className={`hero-logo ${heroAnimationComplete ? 'visible' : ''}`}>
+          <h1 className="logo-main">SG</h1>
+          <h2 className="logo-subtitle">SQUAD GOALS</h2>
+        </div>
+
+        {/* Content that fades in after animation */}
+        <div className={`hero-content ${heroAnimationComplete ? 'visible' : ''}`}>
+          <p className="hero-tagline">Collaborative mind mapping for your squad</p>
+          <div className="home-hero-buttons">
+            <Link to="/register" className="btn btn-primary">
+              Get Started
+            </Link>
+            <Link to="/login" className="btn btn-secondary">
+              Login
+            </Link>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className={`scroll-indicator ${heroAnimationComplete ? 'visible' : ''}`}>
+          <span>Scroll to explore</span>
+          <div className="scroll-arrow">↓</div>
         </div>
       </div>
 
@@ -71,20 +108,16 @@ const Home = () => {
           </p>
         </div>
 
-        {/* Demo Controls */}
-        <div className="demo-controls">
-          <button 
-            onClick={() => setCurrentLayer('personal')}
-            className={currentLayer === 'personal' ? 'active' : ''}
-          >
-            Personal Layer
-          </button>
-          <button 
-            onClick={() => setCurrentLayer('group')}
-            className={currentLayer === 'group' ? 'active' : ''}
-          >
-            Group Layer
-          </button>
+        {/* Layer Indicator (display only) */}
+        <div className="demo-layer-badges">
+          <div className={`layer-badge ${currentLayer === 'personal' ? 'active' : ''}`}>
+            <span className="badge-icon">👤</span>
+            <span className="badge-text">Personal Layer</span>
+          </div>
+          <div className={`layer-badge ${currentLayer === 'group' ? 'active' : ''}`}>
+            <span className="badge-icon">👥</span>
+            <span className="badge-text">Group Layer</span>
+          </div>
         </div>
 
         {/* Demo Description */}

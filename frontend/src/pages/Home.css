@@ -1,23 +1,163 @@
 /* Home Page Styles */
 
-.home-hero {
+/* Font Import */
+@font-face {
+  font-family: 'Library3am';
+  src: url('../fonts/Library3am.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Animated Hero Section */
+.animated-hero {
+  position: relative;
+  height: 100vh;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+/* Animated Nodes Container */
+.node-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Individual Animated Nodes */
+.animated-node {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: slideAcross 2s ease-in-out forwards;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+/* Stagger the node animations */
+.node-1 {
+  top: 10%;
+  animation-delay: 0s;
+}
+
+.node-2 {
+  top: 25%;
+  animation-delay: 0.15s;
+}
+
+.node-3 {
+  top: 40%;
+  animation-delay: 0.3s;
+}
+
+.node-4 {
+  top: 55%;
+  animation-delay: 0.45s;
+}
+
+.node-5 {
+  top: 70%;
+  animation-delay: 0.6s;
+}
+
+.node-6 {
+  top: 85%;
+  animation-delay: 0.75s;
+}
+
+.node-7 {
+  top: 20%;
+  animation-delay: 0.9s;
+}
+
+.node-8 {
+  top: 50%;
+  animation-delay: 1.05s;
+}
+
+/* Slide across animation */
+@keyframes slideAcross {
+  0% {
+    left: 100%;
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    left: -100px;
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Hero Logo */
+.hero-logo {
+  position: relative;
+  z-index: 2;
   text-align: center;
-  padding: 4rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 1s ease-out;
+}
+
+.hero-logo.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.logo-main {
+  font-family: 'Library3am', sans-serif;
+  font-size: 12rem;
+  margin: 0;
   color: white;
-  border-radius: 10px;
-  margin: 2rem 0;
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.5),
+               0 0 80px rgba(102, 126, 234, 0.6);
+  letter-spacing: 0.1em;
+  line-height: 1;
 }
 
-.home-hero h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+.logo-subtitle {
+  font-family: 'Library3am', sans-serif;
+  font-size: 2.5rem;
+  margin: 0;
+  margin-top: 1rem;
+  color: #4ECDC4;
+  text-shadow: 0 0 20px rgba(78, 205, 196, 0.6);
+  letter-spacing: 0.3em;
 }
 
-.home-hero p {
-  font-size: 1.2rem;
+/* Hero Content */
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin-top: 3rem;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 1s ease-out 0.5s;
+}
+
+.hero-content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-tagline {
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 2rem;
-  opacity: 0.9;
+  font-weight: 300;
 }
 
 .home-hero-buttons {
@@ -28,7 +168,82 @@
 
 .home-hero-buttons .btn {
   font-size: 1.1rem;
-  padding: 12px 24px;
+  padding: 15px 35px;
+  border-radius: 50px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+
+.home-hero-buttons .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.home-hero-buttons .btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+}
+
+.home-hero-buttons .btn-secondary {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+}
+
+.home-hero-buttons .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+}
+
+/* Scroll Indicator */
+.scroll-indicator {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0;
+  animation: fadeIn 1s ease-out 2.5s forwards;
+}
+
+.scroll-indicator.visible {
+  opacity: 1;
+}
+
+.scroll-indicator span {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.scroll-arrow {
+  font-size: 2rem;
+  animation: bounce 2s infinite;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
 }
 
 /* Feature Cards */
@@ -73,35 +288,51 @@
   margin: 0 auto;
 }
 
-/* Demo Controls */
-.demo-controls {
+/* Layer Indicator Badges */
+.demo-layer-badges {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 
-.demo-controls button {
-  border: 2px solid #007bff;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
+.layer-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 10px 20px;
+  border-radius: 25px;
+  background-color: #e9ecef;
+  border: 2px solid #dee2e6;
   transition: all 0.3s ease;
-  background-color: #f8f9fa;
-  color: #007bff;
+  opacity: 0.5;
 }
 
-.demo-controls button.active {
-  background-color: #007bff;
+.layer-badge.active {
+  opacity: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transform: scale(1.05);
+}
+
+.badge-icon {
+  font-size: 1.5rem;
+}
+
+.badge-text {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.layer-badge.active .badge-text {
   color: white;
 }
 
-.demo-controls button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+.layer-badge:not(.active) .badge-text {
+  color: #6c757d;
 }
 
 /* Demo Description */
@@ -165,12 +396,31 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .home-hero h1 {
-    font-size: 2rem;
+  .logo-main {
+    font-size: 6rem;
   }
 
-  .home-hero p {
+  .logo-subtitle {
+    font-size: 1.5rem;
+  }
+
+  .hero-tagline {
     font-size: 1rem;
+    padding: 0 1rem;
+  }
+
+  .home-hero-buttons {
+    flex-direction: column;
+    padding: 0 2rem;
+  }
+
+  .home-hero-buttons .btn {
+    width: 100%;
+  }
+
+  .animated-node {
+    width: 50px;
+    height: 50px;
   }
 
   .demo-header h2 {
@@ -183,6 +433,26 @@
 
   .feature-grid {
     grid-template-columns: 1fr;
+  }
+
+  .scroll-indicator {
+    bottom: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-main {
+    font-size: 4rem;
+  }
+
+  .logo-subtitle {
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
+  }
+
+  .animated-node {
+    width: 40px;
+    height: 40px;
   }
 }
 
