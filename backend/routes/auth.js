@@ -22,6 +22,12 @@ router.post('/register', [
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
   try {
+    // Debug: Check if JWT_SECRET is loaded
+    if (!process.env.JWT_SECRET) {
+      console.error('❌ JWT_SECRET is not defined in environment variables!');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -66,8 +72,9 @@ router.post('/register', [
       res.json({ token });
     });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Registration Error:', error.message);
+    console.error('Full error:', error);
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 });
 
@@ -79,6 +86,12 @@ router.post('/login', [
   body('password').exists().withMessage('Password is required')
 ], async (req, res) => {
   try {
+    // Debug: Check if JWT_SECRET is loaded
+    if (!process.env.JWT_SECRET) {
+      console.error('❌ JWT_SECRET is not defined in environment variables!');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -113,8 +126,9 @@ router.post('/login', [
       res.json({ token });
     });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Login Error:', error.message);
+    console.error('Full error:', error);
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 });
 
