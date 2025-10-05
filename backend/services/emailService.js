@@ -14,12 +14,14 @@ async function sendVerificationEmail(user, origin) {
   user.verificationToken = token;
   await user.save();
 
-  const verifyUrl = `${origin}/api/auth/verify-email/${token}`;
+  // Ensure the link points to the backend API route, not the frontend
+  const backendUrl = process.env.PORT || origin;
+  const verifyUrl = `${backendUrl}/api/auth/verify-email/${token}`;
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to: user.email,
     subject: 'Verify your email',
-    html: `<p>Hi ${user.name},</p><p>Please verify your email by clicking <a href="${verifyUrl}">here</a>.</p>`
+    html: `<p>Hey ${user.name},</p><p>Please verify your email by clicking <a href="${verifyUrl}">here!</a>.</p>`
   };
   await transporter.sendMail(mailOptions);
 }

@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
+import { useEffect } from 'react';
 import GoogleAuthButton from '../components/GoogleAuthButton';
+console.log('[Frontend] Login.js loaded');
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  const { setUser } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -37,6 +40,19 @@ const Login = () => {
     
     setLoading(false);
   };
+
+  // Google OAuth: auto-login if token in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    console.log('[Google OAuth] Token from URL:', token);
+    if (token) {
+      localStorage.setItem('token', token);
+      console.log('[Google OAuth] Token saved to localStorage');
+      // Reload the page to ensure AuthContext picks up the token immediately
+      window.location.replace('/login');
+    }
+  }, []);
 
   return (
   <div className="login-container">

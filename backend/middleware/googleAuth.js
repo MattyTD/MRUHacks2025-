@@ -14,6 +14,7 @@ passport.use(new GoogleStrategy({
       // Merge Google account if not already linked
       if (!user.googleId) {
         user.googleId = profile.id;
+        user.isVerified = true; // Google emails are verified
         await user.save();
       }
       return done(null, user);

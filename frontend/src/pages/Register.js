@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Register.css';
+import { useEffect } from 'react';
 import GoogleAuthButton from '../components/GoogleAuthButton';
+console.log('[Frontend] Register.js loaded');
 
 const Register = () => {
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -45,6 +48,46 @@ const Register = () => {
     
     setLoading(false);
   };
+
+  // Google OAuth: auto-login if token in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    console.log('[Google OAuth] Token from URL:', token);
+    if (token) {
+      localStorage.setItem('token', token);
+      console.log('[Google OAuth] Token saved to localStorage');
+      // Optionally set axios header immediately
+      // axios.defaults.headers.common['x-auth-token'] = token;
+      (async () => {
+        try {
+          const res = await fetch('http://localhost:5001/api/auth/me', {
+            headers: { 'x-auth-token': token }
+          });
+          console.log('[Google OAuth] /api/auth/me response status:', res.status);
+          if (res.ok) {
+            const user = await res.json();
+            console.log('[Google OAuth] User fetched:', user);
+            setUser && setUser(user);
+            navigate('/owner');
+          } else {
+            // Token invalid, remove and show error
+            console.log('[Google OAuth] Invalid token, removing from localStorage');
+            localStorage.removeItem('token');
+            setUser && setUser(null);
+            setError('Google registration failed. Please try again.');
+            navigate('/register');
+          }
+        } catch (err) {
+          console.log('[Google OAuth] Error during fetch:', err);
+          localStorage.removeItem('token');
+          setUser && setUser(null);
+          setError('Google registration failed. Please try again.');
+          navigate('/register');
+        }
+      })();
+    }
+  }, [navigate, setUser]);
 
   return (
   <div className="register-container">

@@ -1,4 +1,5 @@
 const express = require('express');
+console.log('[Backend] auth.js loaded');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
@@ -104,6 +105,9 @@ router.post('/login', [
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
+  } else if (!user.isVerified) {
+    user.isVerified = true; // Auto-verify if logging in via Google
+    await user.save();
   }
 
     if (!user.isVerified) {
@@ -136,10 +140,16 @@ router.post('/login', [
 // @access  Private
 router.get('/me', auth, async (req, res) => {
   try {
+    console.log('[GET /api/auth/me] req.user:', req.user);
     const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      console.log('[GET /api/auth/me] User not found for id:', req.user.id);
+      return res.status(404).json({ message: 'User not found' });
+    }
+    console.log('[GET /api/auth/me] User found:', user);
     res.json(user);
   } catch (error) {
-    console.error(error.message);
+    console.error('[GET /api/auth/me] Error:', error.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -275,8 +285,11 @@ router.post('/send-friend-request', auth, async (req, res) => {
 router.get('/personal-mindmap', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('personalMindMaps');
+    if (!user || !user.personalMindMaps) {
+      return res.status(404).json({ message: 'User or personal mind maps not found.' });
+    }
     // Return the first personal mind map for backward compatibility
-    const personalMindMap = user.personalMindMaps && user.personalMindMaps.length > 0 ? user.personalMindMaps[0] : null;
+    const personalMindMap = user.personalMindMaps.length > 0 ? user.personalMindMaps[0] : null;
     res.json({ personalMindMap });
   } catch (error) {
     console.error('Error fetching personal mind map:', error);
@@ -413,27 +426,43 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 // Google OAuth callback
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login', session: false }), async (req, res) => {
+  console.log('[Google OAuth] Callback hit, user:', req.user);
   const payload = { user: { id: req.user.id } };
   jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
-    if (err) throw err;
+    if (err) {
+      console.error('[Google OAuth] JWT sign error:', err);
+      return res.status(500).send('JWT sign error');
+    }
+    console.log('[Google OAuth] Redirecting to frontend with token:', token);
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?token=${token}`);
   });
 });
 
+// @route   GET /api/auth/verify-email/:token
+// @desc    Verify user's email from token and redirect to frontend confirmation page
+// @access  Public
 router.get('/verify-email/:token', async (req, res) => {
+  const frontendVerificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verification`;
   try {
-    const user = await User.findOne({ verificationToken: req.params.token });
+    const { token } = req.params;
+    if (!token) {
+      return res.redirect(`${frontendVerificationUrl}?verified=fail`);
+    }
+    const user = await User.findOne({ verificationToken: token });
     if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired verification token.' });
+      return res.redirect(`${frontendVerificationUrl}?verified=fail`);
     }
     user.isVerified = true;
     user.verificationToken = null;
     await user.save();
-    // Create default system node types for new user after verification
-    await createSystemNodeTypes(user.id);
-    res.json({ message: 'Email verified successfully. You can now log in.' });
+    // Optionally create system node types for new user
+    if (typeof createSystemNodeTypes === 'function') {
+      await createSystemNodeTypes(user.id);
+    }
+    return res.redirect(`${frontendVerificationUrl}?verified=success`);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('[Verify Email] Error:', error);
+    return res.redirect(`${frontendVerificationUrl}?verified=error`);
   }
 });
 

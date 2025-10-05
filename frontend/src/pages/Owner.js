@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import './Owner.css';
 
 const Owner = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [boards, setBoards] = useState([]);
   const [filteredBoards, setFilteredBoards] = useState([]);
