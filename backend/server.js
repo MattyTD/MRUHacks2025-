@@ -6,6 +6,12 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
+// Set default JWT_SECRET if not provided
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'default_jwt_secret_for_development_only_change_in_production';
+  console.warn('WARNING: Using default JWT_SECRET. Please set JWT_SECRET in your environment variables for production.');
+}
+
 const app = express();
 
 // Middleware

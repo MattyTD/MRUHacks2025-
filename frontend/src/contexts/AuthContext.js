@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Configure axios base URL
+axios.defaults.baseURL = 'http://localhost:5001';
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -46,11 +49,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('Attempting login with:', { email, password: '***' });
       const res = await axios.post('/api/auth/login', { email, password });
+      console.log('Login response:', res.data);
       const { token } = res.data;
       
       localStorage.setItem('token', token);
       setToken(token);
+      
+      // Set axios header immediately
+      axios.defaults.headers.common['x-auth-token'] = token;
       
       // Load user data
       const userRes = await axios.get('/api/auth/me');
@@ -58,6 +66,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Login failed' 
@@ -67,11 +76,16 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
+      console.log('Attempting registration with:', { name, email, password: '***' });
       const res = await axios.post('/api/auth/register', { name, email, password });
+      console.log('Registration response:', res.data);
       const { token } = res.data;
       
       localStorage.setItem('token', token);
       setToken(token);
+      
+      // Set axios header immediately
+      axios.defaults.headers.common['x-auth-token'] = token;
       
       // Load user data
       const userRes = await axios.get('/api/auth/me');
@@ -79,9 +93,10 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Registration error:', error.response?.data || error.message);
       return { 
         success: false, 
-        message: error.response?.data?.message || 'Registration failed' 
+        message: error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Registration failed' 
       };
     }
   };
@@ -90,6 +105,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
+    delete axios.defaults.headers.common['x-auth-token'];
   };
 
   const value = {
