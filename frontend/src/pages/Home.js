@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import DemoMindMap from '../components/DemoMindMap';
 import './Home.css';
+import Squadpng from '../assets/SquadGoalsBeta.png';
 
 const Home = () => {
   const [currentLayer, setCurrentLayer] = useState('group');
@@ -118,7 +119,7 @@ const Home = () => {
 
         {/* Logo text that appears after animation */}
         <div className={`hero-logo ${heroAnimationComplete ? 'visible' : ''}`}>
-          <h1 className="logo-main">SG</h1>
+          <image src={Squadpng} alt="logo" width={500} height={500}></image>
           <h2 className="logo-subtitle">SQUAD GOALS</h2>
         </div>
 
