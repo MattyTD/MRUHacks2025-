@@ -32,6 +32,39 @@
   z-index: 10;
 }
 
+.recenter-button {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.recenter-button:hover {
+  background-color: #0056b3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.recenter-button:active {
+  transform: scale(0.95);
+}
+
+.recenter-button svg {
+  pointer-events: none;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .mindmap-container {
