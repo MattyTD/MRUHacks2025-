@@ -111,14 +111,40 @@
   border-radius: 8px;
   font-size: 16px;
   transition: all 0.3s ease;
-  color: #2c3e50;
-  background-color: white;
+  color: #2c3e50 !important;
+  -webkit-text-fill-color: #2c3e50 !important; /* Safari/WebKit */
+  background-color: #ffffff !important;
 }
 
 .register-card .form-group input:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Placeholder color to match dark text tone */
+.register-card .form-group input::placeholder {
+  color: #90a4ae;
+  opacity: 1; /* Firefox */
+}
+
+/* Fix Chrome/Safari autofill in light inputs (was showing white text)
+   Keep background white and text color consistent */
+.register-card .form-group input:-webkit-autofill,
+.register-card .form-group input:-webkit-autofill:hover,
+.register-card .form-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #2c3e50;
+  caret-color: #2c3e50;
+  transition: background-color 9999s ease-in-out 0s;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+}
+
+/* Firefox autofill */
+.register-card .form-group input:-moz-ui-invalid,
+.register-card .form-group input:-moz-placeholder-shown:-moz-autofill,
+.register-card .form-group input:-moz-autofill {
+  color: #2c3e50;
+  background-color: #ffffff !important;
 }
 
 .register-card .error {
