@@ -126,7 +126,7 @@ const Home = () => {
         </div>
 
         {/* Content that fades in after animation */}
-        <div className={`hero-content ${heroAnimationComplete ? 'visible' : ''}`}>
+        <div className={`hero-content ${heroAnimationComplete ? 'visible' : ''} ${user ? 'logged-in' : ''}`}>
           {user ? (
             <>
               <div className="welcome-user-section">
