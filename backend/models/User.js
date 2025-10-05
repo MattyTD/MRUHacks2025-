@@ -14,9 +14,9 @@ const UserSchema = new mongoose.Schema({
     trim: true
   },
   password: {
-    type: String,
-    required: true,
-    minlength: 6
+  type: String,
+  required: false,
+  minlength: 6
   },
   avatar: {
     type: String,
@@ -45,7 +45,19 @@ const UserSchema = new mongoose.Schema({
     levels: { type: Number, default: 3 },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
-  }]
+  }],
+  googleId: {
+    type: String,
+    default: null
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationToken: {
+    type: String,
+    default: null
+  }
 }, {
   timestamps: true
 });
