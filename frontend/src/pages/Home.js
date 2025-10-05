@@ -32,6 +32,7 @@ const Home = () => {
   return (
     <div className="container">
       <div className="home-hero">
+        <img src={"../assets/SquadGoalsBeta.png"}alt={""}width={100}height={100}/>
         <h1>Squad Goals</h1>
         <p>Collaborative mind mapping for your squad - connect ideas, memories, and interests</p>
         <div className="home-hero-buttons">

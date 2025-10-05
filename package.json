@@ -14,10 +14,19 @@
     "dev:mac": "concurrently \"npm run server\" \"npm run client\"",
     "dev:linux": "concurrently \"npm run server\" \"npm run client\""
   },
-  "keywords": ["mern", "react", "node", "express", "mongodb"],
+  "keywords": [
+    "mern",
+    "react",
+    "node",
+    "express",
+    "mongodb"
+  ],
   "author": "MRUHacks2025",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "all": "^0.0.0"
   }
 }
