@@ -4,8 +4,18 @@ import DemoMindMap from '../components/DemoMindMap';
 import './Home.css';
 
 const Home = () => {
-  const [currentLayer, setCurrentLayer] = useState('personal');
+  const [currentLayer, setCurrentLayer] = useState('group');
   const [isDemoVisible, setIsDemoVisible] = useState(false);
+  const [heroAnimationComplete, setHeroAnimationComplete] = useState(false);
+
+  // Trigger hero animation completion after delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHeroAnimationComplete(true);
+    }, 2000); // Animation completes after 2 seconds
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle scroll to show demo
   useEffect(() => {
@@ -31,34 +41,87 @@ const Home = () => {
 
   return (
     <div className="container">
-      <div className="home-hero">
-        <img src={"../assets/SquadGoalsBeta.png"}alt={""}width={100}height={100}/>
-        <h1>Squad Goals</h1>
-        <p>Collaborative mind mapping for your squad - connect ideas, memories, and interests</p>
-        <div className="home-hero-buttons">
-          <Link to="/register" className="btn btn-primary">
-            Get Started
-          </Link>
-          <Link to="/login" className="btn btn-secondary">
-            Login
-          </Link>
+      {/* Animated Hero Section */}
+      <div className="animated-hero">
+        {/* Animated nodes that slide across */}
+        <div className="node-container">
+          <div className="animated-node node-1" style={{ backgroundColor: '#FF6B6B' }}></div>
+          <div className="animated-node node-2" style={{ backgroundColor: '#4ECDC4' }}></div>
+          <div className="animated-node node-3" style={{ backgroundColor: '#95E1D3' }}></div>
+          <div className="animated-node node-4" style={{ backgroundColor: '#F38181' }}></div>
+          <div className="animated-node node-5" style={{ backgroundColor: '#AA96DA' }}></div>
+          <div className="animated-node node-6" style={{ backgroundColor: '#FCBAD3' }}></div>
+          <div className="animated-node node-7" style={{ backgroundColor: '#A8D8EA' }}></div>
+          <div className="animated-node node-8" style={{ backgroundColor: '#FFD93D' }}></div>
+          <div className="animated-node node-9" style={{ backgroundColor: '#FF6B9D' }}></div>
+          <div className="animated-node node-10" style={{ backgroundColor: '#C44569' }}></div>
+          <div className="animated-node node-11" style={{ backgroundColor: '#F8B500' }}></div>
+          <div className="animated-node node-12" style={{ backgroundColor: '#6C5CE7' }}></div>
+          <div className="animated-node node-13" style={{ backgroundColor: '#FD79A8' }}></div>
+          <div className="animated-node node-14" style={{ backgroundColor: '#A29BFE' }}></div>
+          <div className="animated-node node-15" style={{ backgroundColor: '#00B894' }}></div>
+          <div className="animated-node node-16" style={{ backgroundColor: '#FDCB6E' }}></div>
+        </div>
+
+        {/* Logo text that appears after animation */}
+        <div className={`hero-logo ${heroAnimationComplete ? 'visible' : ''}`}>
+          <h1 className="logo-main">SG</h1>
+          <h2 className="logo-subtitle">SQUAD GOALS</h2>
+        </div>
+
+        {/* Content that fades in after animation */}
+        <div className={`hero-content ${heroAnimationComplete ? 'visible' : ''}`}>
+          <p className="hero-tagline">Collaborative mind mapping for your squad</p>
+          <div className="home-hero-buttons">
+            <Link to="/register" className="btn btn-primary">
+              Get Started
+            </Link>
+            <Link to="/login" className="btn btn-secondary">
+              Login
+            </Link>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className={`scroll-indicator ${heroAnimationComplete ? 'visible' : ''}`}>
+          <span>Scroll to explore</span>
+          <div className="scroll-arrow">↓</div>
         </div>
       </div>
 
-      <div className="feature-grid">
-        <div className="card">
-          <h3>🧠 Personal Mind Maps</h3>
-          <p>Create nodes for hobbies, interests, and memories. Connect them with tags to build your personal knowledge network.</p>
+      {/* Feature Nodes Section */}
+      <div className="feature-nodes-container">
+        <div className="feature-node" style={{ 
+          backgroundColor: '#FF6B9D', 
+          top: '10%',
+          left: '15%'
+        }}>
+          <div className="feature-node-content">
+            <h3>🧠 Personal Mind Maps</h3>
+            <p>Create nodes for hobbies, interests, and memories. Connect them with tags to build your personal knowledge network.</p>
+          </div>
         </div>
         
-        <div className="card">
-          <h3>👥 Collaborative Layers</h3>
-          <p>Zoom out to see how your personal map connects with your squad's maps through shared interests and tags.</p>
+        <div className="feature-node" style={{ 
+          backgroundColor: '#6C5CE7',
+          top: '45%',
+          right: '20%'
+        }}>
+          <div className="feature-node-content">
+            <h3>👥 Collaborative Layers</h3>
+            <p>Zoom out to see how your personal map connects with your squad's maps through shared interests and tags.</p>
+          </div>
         </div>
         
-        <div className="card">
-          <h3>🏷️ Tag-Based Connections</h3>
-          <p>Automatic connections based on shared tags create meaningful relationships between ideas and people.</p>
+        <div className="feature-node" style={{ 
+          backgroundColor: '#00B894',
+          top: '75%',
+          left: '25%'
+        }}>
+          <div className="feature-node-content">
+            <h3>🏷️ Tag-Based Connections</h3>
+            <p>Automatic connections based on shared tags create meaningful relationships between ideas and people.</p>
+          </div>
         </div>
       </div>
 
@@ -72,20 +135,16 @@ const Home = () => {
           </p>
         </div>
 
-        {/* Demo Controls */}
-        <div className="demo-controls">
-          <button 
-            onClick={() => setCurrentLayer('personal')}
-            className={currentLayer === 'personal' ? 'active' : ''}
-          >
-            Personal Layer
-          </button>
-          <button 
-            onClick={() => setCurrentLayer('group')}
-            className={currentLayer === 'group' ? 'active' : ''}
-          >
-            Group Layer
-          </button>
+        {/* Layer Indicator (display only) */}
+        <div className="demo-layer-badges">
+          <div className={`layer-badge ${currentLayer === 'personal' ? 'active' : ''}`}>
+            <span className="badge-icon">👤</span>
+            <span className="badge-text">Personal Layer</span>
+          </div>
+          <div className={`layer-badge ${currentLayer === 'group' ? 'active' : ''}`}>
+            <span className="badge-icon">👥</span>
+            <span className="badge-text">Group Layer</span>
+          </div>
         </div>
 
         {/* Demo Description */}
