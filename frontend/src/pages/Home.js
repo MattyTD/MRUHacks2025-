@@ -119,7 +119,7 @@ const Home = () => {
 
         {/* Logo text that appears after animation */}
         <div className={`hero-logo ${heroAnimationComplete ? 'visible' : ''}`}>
-          <image src={Squadpng} alt="logo" width={500} height={500}></image>
+          <img src={Squadpng} alt="logo" width={200} height={200} />
           <h2 className="logo-subtitle">SQUAD GOALS</h2>
         </div>
 
