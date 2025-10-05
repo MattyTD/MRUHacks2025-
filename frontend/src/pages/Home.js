@@ -53,6 +53,14 @@ const Home = () => {
           <div className="animated-node node-6" style={{ backgroundColor: '#FCBAD3' }}></div>
           <div className="animated-node node-7" style={{ backgroundColor: '#A8D8EA' }}></div>
           <div className="animated-node node-8" style={{ backgroundColor: '#FFD93D' }}></div>
+          <div className="animated-node node-9" style={{ backgroundColor: '#FF6B9D' }}></div>
+          <div className="animated-node node-10" style={{ backgroundColor: '#C44569' }}></div>
+          <div className="animated-node node-11" style={{ backgroundColor: '#F8B500' }}></div>
+          <div className="animated-node node-12" style={{ backgroundColor: '#6C5CE7' }}></div>
+          <div className="animated-node node-13" style={{ backgroundColor: '#FD79A8' }}></div>
+          <div className="animated-node node-14" style={{ backgroundColor: '#A29BFE' }}></div>
+          <div className="animated-node node-15" style={{ backgroundColor: '#00B894' }}></div>
+          <div className="animated-node node-16" style={{ backgroundColor: '#FDCB6E' }}></div>
         </div>
 
         {/* Logo text that appears after animation */}
@@ -81,20 +89,39 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="feature-grid">
-        <div className="card">
-          <h3>🧠 Personal Mind Maps</h3>
-          <p>Create nodes for hobbies, interests, and memories. Connect them with tags to build your personal knowledge network.</p>
+      {/* Feature Nodes Section */}
+      <div className="feature-nodes-container">
+        <div className="feature-node" style={{ 
+          backgroundColor: '#FF6B9D', 
+          top: '10%',
+          left: '15%'
+        }}>
+          <div className="feature-node-content">
+            <h3>🧠 Personal Mind Maps</h3>
+            <p>Create nodes for hobbies, interests, and memories. Connect them with tags to build your personal knowledge network.</p>
+          </div>
         </div>
         
-        <div className="card">
-          <h3>👥 Collaborative Layers</h3>
-          <p>Zoom out to see how your personal map connects with your squad's maps through shared interests and tags.</p>
+        <div className="feature-node" style={{ 
+          backgroundColor: '#6C5CE7',
+          top: '45%',
+          right: '20%'
+        }}>
+          <div className="feature-node-content">
+            <h3>👥 Collaborative Layers</h3>
+            <p>Zoom out to see how your personal map connects with your squad's maps through shared interests and tags.</p>
+          </div>
         </div>
         
-        <div className="card">
-          <h3>🏷️ Tag-Based Connections</h3>
-          <p>Automatic connections based on shared tags create meaningful relationships between ideas and people.</p>
+        <div className="feature-node" style={{ 
+          backgroundColor: '#00B894',
+          top: '75%',
+          left: '25%'
+        }}>
+          <div className="feature-node-content">
+            <h3>🏷️ Tag-Based Connections</h3>
+            <p>Automatic connections based on shared tags create meaningful relationships between ideas and people.</p>
+          </div>
         </div>
       </div>
 
