@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import DemoMindMap from '../components/DemoMindMap';
 import './Home.css';
+import SquadGoalsBeta from '../assets/SquadGoalsBeta.png';
 
 const Home = () => {
   const [currentLayer, setCurrentLayer] = useState('personal');
@@ -32,7 +33,7 @@ const Home = () => {
   return (
     <div className="container">
       <div className="home-hero">
-        <img src={"../assets/SquadGoalsBeta.png"}alt={""}width={100}height={100}/>
+        <img src={SquadGoalsBeta}alt={""}width={100}height={100}/>
         <h1>Squad Goals</h1>
         <p>Collaborative mind mapping for your squad - connect ideas, memories, and interests</p>
         <div className="home-hero-buttons">
