@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import PersonalMindMapCreator from '../components/PersonalMindMapCreator';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -22,6 +23,8 @@ const Dashboard = () => {
   const [newBoardColor, setNewBoardColor] = useState('#667EEA');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [showPersonalMindMapCreator, setShowPersonalMindMapCreator] = useState(false);
+  const [hasPersonalMindMap, setHasPersonalMindMap] = useState(false);
   const fileInputRef = useRef(null);
 
   // Board color options (same as Owner page)
@@ -36,8 +39,21 @@ const Dashboard = () => {
     '#D6BCFA', // Lavender
   ];
 
+  const checkPersonalMindMap = useCallback(async () => {
+    try {
+      const response = await axios.get('/api/auth/personal-mindmap');
+      setHasPersonalMindMap(!!response.data.personalMindMap);
+    } catch (error) {
+      console.error('Error checking personal mind map:', error);
+      setHasPersonalMindMap(false);
+    }
+  }, []);
+
   const fetchDashboardStats = useCallback(async () => {
     try {
+      // Check if user has personal mind map
+      await checkPersonalMindMap();
+
       // Fetch user's boards
       const boardsRes = await axios.get('/api/boards');
       const boards = boardsRes.data;
@@ -92,7 +108,7 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, checkPersonalMindMap]);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -139,6 +155,13 @@ const Dashboard = () => {
   // Quick Actions handlers
   const handleCreateNewBoard = () => {
     console.log('Create New Board button clicked!');
+    
+    // Check if user has personal mind map first
+    if (!hasPersonalMindMap) {
+      setShowPersonalMindMapCreator(true);
+      return;
+    }
+    
     console.log('Current showCreateModal state:', showCreateModal);
     setShowCreateModal(true);
     console.log('Setting showCreateModal to true');
@@ -224,6 +247,35 @@ const Dashboard = () => {
         alert('Failed to send friend request');
       }
     }
+  };
+
+  // Personal Mind Map Creator handlers
+  const handlePersonalMindMapComplete = async (mindMapData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/api/auth/create-personal-mindmap', mindMapData, {
+        headers: { 'x-auth-token': token }
+      });
+      
+      setShowPersonalMindMapCreator(false);
+      setHasPersonalMindMap(true);
+      
+      // Show success message and then proceed to create board
+      alert('Personal mind map created successfully! Now you can create collaborative boards.');
+      
+      // Automatically open board creation modal
+      setTimeout(() => {
+        setShowCreateModal(true);
+      }, 1000);
+      
+    } catch (err) {
+      console.error('Error creating personal mind map:', err);
+      alert('Failed to create personal mind map');
+    }
+  };
+
+  const handlePersonalMindMapCancel = () => {
+    setShowPersonalMindMapCreator(false);
   };
 
   if (loading) {
@@ -503,6 +555,14 @@ const Dashboard = () => {
               </form>
             </div>
           </div>
+        )}
+        
+        {/* Personal Mind Map Creator */}
+        {showPersonalMindMapCreator && (
+          <PersonalMindMapCreator
+            onComplete={handlePersonalMindMapComplete}
+            onCancel={handlePersonalMindMapCancel}
+          />
         )}
       </div>
     </div>

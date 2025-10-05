@@ -117,6 +117,18 @@
   background: rgba(255, 107, 157, 0.2);
 }
 
+.personal-mindmap-button {
+  background: rgba(108, 92, 231, 0.1);
+  border: 2px solid rgba(108, 92, 231, 0.3);
+  color: #6C5CE7;
+}
+
+.personal-mindmap-button:hover {
+  background: rgba(108, 92, 231, 0.2);
+  border-color: #6C5CE7;
+  box-shadow: 0 6px 25px rgba(108, 92, 231, 0.4);
+}
+
 .sidebar-search {
   position: relative;
   width: 100%;

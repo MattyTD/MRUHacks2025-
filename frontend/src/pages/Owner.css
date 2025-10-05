@@ -169,11 +169,32 @@
 }
 
 .board-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 12px 20px;
   background: rgba(0, 0, 0, 0.2);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
+}
+
+.delete-board-btn {
+  background: rgba(248, 113, 113, 0.2);
+  border: 1px solid #F87171;
+  border-radius: 8px;
+  color: #F87171;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.delete-board-btn:hover {
+  background: rgba(248, 113, 113, 0.3);
+  border-color: #EF4444;
+  color: #EF4444;
+  transform: scale(1.05);
 }
 
 /* Modal */
@@ -436,6 +457,126 @@
 
   .modal-header h2 {
     font-size: 24px;
+  }
+}
+
+/* Board Type Toggle Styles */
+.board-type-toggle {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 107, 157, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.toggle-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 107, 157, 0.3);
+  border-radius: 15px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.toggle-btn:hover {
+  border-color: #FF6B9D;
+  background: rgba(255, 107, 157, 0.1);
+  transform: translateY(-2px);
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #FF6B9D, #6C5CE7);
+  border-color: #FF6B9D;
+  box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
+}
+
+.toggle-icon {
+  font-size: 1.2rem;
+}
+
+.toggle-description {
+  text-align: center;
+}
+
+.toggle-description p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Board Type Selection in Modal */
+.board-type-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.board-type-option {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 107, 157, 0.2);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.board-type-option:hover {
+  border-color: #FF6B9D;
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.board-type-option input[type="radio"] {
+  margin-right: 1rem;
+  accent-color: #FF6B9D;
+}
+
+.board-type-label {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  font-weight: bold;
+}
+
+.board-type-icon {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.board-type-label small {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: normal;
+  font-size: 0.85rem;
+}
+
+/* Responsive Design for Board Type Toggle */
+@media (max-width: 768px) {
+  .toggle-container {
+    flex-direction: column;
+  }
+  
+  .board-type-selection {
+    gap: 0.5rem;
+  }
+  
+  .board-type-option {
+    padding: 0.8rem;
   }
 }
 

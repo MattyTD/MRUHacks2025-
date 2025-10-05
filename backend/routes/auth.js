@@ -273,4 +273,142 @@ router.post('/send-friend-request', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/auth/personal-mindmap
+// @desc    Get user's personal mind map
+// @access  Private
+router.get('/personal-mindmap', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('personalMindMaps');
+    // Return the first personal mind map for backward compatibility
+    const personalMindMap = user.personalMindMaps && user.personalMindMaps.length > 0 ? user.personalMindMaps[0] : null;
+    res.json({ personalMindMap });
+  } catch (error) {
+    console.error('Error fetching personal mind map:', error);
+    res.status(500).json({ message: 'Server error during personal mind map fetch' });
+  }
+});
+
+// @route   POST /api/auth/create-personal-mindmap
+// @desc    Create or update user's personal mind map
+// @access  Private
+router.post('/create-personal-mindmap', auth, async (req, res) => {
+  try {
+    const { name, context, nodes, edges, legend, levels } = req.body;
+    
+    if (!name || !context || !nodes || !edges) {
+      return res.status(400).json({ message: 'Missing required fields for personal mind map' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const personalMindMap = {
+      name: name.trim(),
+      context,
+      nodes,
+      edges,
+      legend: legend || {},
+      levels: levels || 3,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    user.personalMindMaps.push(personalMindMap);
+    await user.save();
+
+    res.json({ 
+      message: 'Personal mind map created successfully',
+      personalMindMap: personalMindMap
+    });
+  } catch (error) {
+    console.error('Error creating personal mind map:', error);
+    res.status(500).json({ message: 'Server error during personal mind map creation' });
+  }
+});
+
+// @route   GET /api/auth/personal-mindmaps
+// @desc    Get all personal mind maps for the user
+// @access  Private
+router.get('/personal-mindmaps', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('personalMindMaps');
+    res.json({ mindMaps: user.personalMindMaps || [] });
+  } catch (error) {
+    console.error('Error fetching personal mind maps:', error);
+    res.status(500).json({ message: 'Server error during personal mind maps fetch' });
+  }
+});
+
+// @route   PUT /api/auth/personal-mindmaps/:id
+// @desc    Update a personal mind map
+// @access  Private
+router.put('/personal-mindmaps/:id', auth, async (req, res) => {
+  try {
+    const { name, context, nodes, edges, legend, levels } = req.body;
+    
+    if (!name || !context || !nodes || !edges) {
+      return res.status(400).json({ message: 'Missing required fields for personal mind map' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const mindMapIndex = user.personalMindMaps.findIndex(map => map._id.toString() === req.params.id);
+    if (mindMapIndex === -1) {
+      return res.status(404).json({ message: 'Personal mind map not found' });
+    }
+
+    const updatedMindMap = {
+      ...user.personalMindMaps[mindMapIndex],
+      name: name.trim(),
+      context,
+      nodes,
+      edges,
+      legend: legend || {},
+      levels: levels || 3,
+      updatedAt: new Date().toISOString()
+    };
+
+    user.personalMindMaps[mindMapIndex] = updatedMindMap;
+    await user.save();
+
+    res.json({ 
+      message: 'Personal mind map updated successfully',
+      personalMindMap: updatedMindMap
+    });
+  } catch (error) {
+    console.error('Error updating personal mind map:', error);
+    res.status(500).json({ message: 'Server error during personal mind map update' });
+  }
+});
+
+// @route   DELETE /api/auth/personal-mindmaps/:id
+// @desc    Delete a personal mind map
+// @access  Private
+router.delete('/personal-mindmaps/:id', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const mindMapIndex = user.personalMindMaps.findIndex(map => map._id.toString() === req.params.id);
+    if (mindMapIndex === -1) {
+      return res.status(404).json({ message: 'Personal mind map not found' });
+    }
+
+    user.personalMindMaps.splice(mindMapIndex, 1);
+    await user.save();
+
+    res.json({ message: 'Personal mind map deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting personal mind map:', error);
+    res.status(500).json({ message: 'Server error during personal mind map deletion' });
+  }
+});
+
 module.exports = router;

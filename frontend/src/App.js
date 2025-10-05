@@ -7,6 +7,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Owner from './pages/Owner';
+import PersonalMindMaps from './pages/PersonalMindMaps';
+import BoardEditor from './pages/BoardEditor';
 import ProtectedRoute from './components/ProtectedRoute';
 import hud from './assets/jhudderson.png';
 import gaybrothers from './assets/gaybrothers.png';
@@ -61,6 +63,22 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <Owner />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/personal-mindmaps" 
+                element={
+                  <ProtectedRoute>
+                    <PersonalMindMaps />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/board/:id" 
+                element={
+                  <ProtectedRoute>
+                    <BoardEditor />
                   </ProtectedRoute>
                 } 
               />

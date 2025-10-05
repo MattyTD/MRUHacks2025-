@@ -78,26 +78,6 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
       </div>
       
       <div className="sidebar-actions">
-        <button 
-          className="sidebar-button create-button" 
-          onClick={onCreateBoard}
-          title="Create New Board"
-        >
-          <svg 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
-        
         <div className="sidebar-search">
           <svg 
             className="search-icon"
@@ -121,6 +101,46 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
             className="sidebar-search-input"
           />
         </div>
+        
+        <button 
+          className="sidebar-button create-button" 
+          onClick={onCreateBoard}
+          title="Create New Board"
+        >
+          <svg 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        
+        <button 
+          className="sidebar-button personal-mindmap-button" 
+          onClick={() => navigate('/personal-mindmaps')}
+          title="Personal Mind Maps"
+        >
+          <svg 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1 .34-4.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path>
+            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0-.34-4.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path>
+          </svg>
+        </button>
       </div>
       
       <div className="sidebar-bottom">
