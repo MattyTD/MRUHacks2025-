@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Squadpng from '../assets/SquadGoalsBeta.png';
+import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -12,50 +14,31 @@ const Navbar = () => {
   };
 
   return (
-    <nav style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: '#007bff',
-      color: 'white',
-      padding: '1rem',
-      zIndex: 1000,
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    }}>
-      <Link to="/" style={{ color: 'white', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>
-        Squad Goals
+    <nav className="navbar">
+      <Link to="/" className="navbar-brand">
+        <img src={Squadpng} alt="Squad Goals" className="navbar-logo" />
+        <span className="navbar-title">Squad Goals</span>
       </Link>
       
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+      <div className="navbar-links">
         {user ? (
           <>
-            <span>Welcome, {user.name}!</span>
-            <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none' }}>
+            <Link to="/owner" className="navbar-link navbar-username">
+              {user.name}
+            </Link>
+            <Link to="/dashboard" className="navbar-link">
               Dashboard
             </Link>
-            <button 
-              onClick={handleLogout}
-              style={{
-                background: 'transparent',
-                border: '1px solid white',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
-            >
+            <button onClick={handleLogout} className="navbar-button">
               Logout
             </button>
           </>
         ) : (
           <>
-            <Link to="/login" style={{ color: 'white', textDecoration: 'none' }}>
+            <Link to="/login" className="navbar-link">
               Login
             </Link>
-            <Link to="/register" style={{ color: 'white', textDecoration: 'none' }}>
+            <Link to="/register" className="navbar-link navbar-link-register">
               Register
             </Link>
           </>
