@@ -1,4 +1,5 @@
 import React from 'react';
+import Verification from './pages/Verification';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
@@ -9,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Owner from './pages/Owner';
 import PersonalMindMaps from './pages/PersonalMindMaps';
 import BoardEditor from './pages/BoardEditor';
+import GeneratedGroupMap from './pages/GeneratedGroupMap';
 import ProtectedRoute from './components/ProtectedRoute';
 import hud from './assets/jhudderson.png';
 import gaybrothers from './assets/gaybrothers.png';
@@ -26,6 +28,7 @@ function AppContent() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/verification" element={<Verification />} />
               <Route path="/jhuddy<3" element={
                 <div style={{
                 display: 'flex',
@@ -79,6 +82,14 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <BoardEditor />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/generated-map" 
+                element={
+                  <ProtectedRoute>
+                    <GeneratedGroupMap />
                   </ProtectedRoute>
                 } 
               />

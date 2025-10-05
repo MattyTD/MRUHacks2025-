@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Squadpng from '../assets/SquadGoalsBeta.png';
@@ -13,6 +14,8 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const sidebarRef = useRef(null);
   const profileDropdownRef = useRef(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const handleSearchChange = (e) => {
     const query = e.target.value;
@@ -201,7 +204,7 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
           )}
         </div>
         
-        <button className="sidebar-button icon-button" title="Settings">
+        <button className="sidebar-button icon-button" title="Settings" onClick={() => setShowSettings(true)}>
           <svg 
             width="24" 
             height="24" 
@@ -223,6 +226,61 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
         className="sidebar-resize-handle" 
         onMouseDown={startResizing}
       />
+
+      {showSettings && (
+        <div className="modal-overlay" onClick={() => !busy && setShowSettings(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Settings</h3>
+            <p>Danger zone actions. Proceed with caution.</p>
+            <div className="form-group">
+              <button
+                className="btn-secondary"
+                disabled={busy}
+                onClick={async () => {
+                  if (!window.confirm('Delete ALL boards you own? This cannot be undone.')) return;
+                  try {
+                    setBusy(true);
+                    await axios.delete('/api/boards');
+                    window.dispatchEvent(new CustomEvent('boardsChanged'));
+                    alert('All owned boards deleted.');
+                  } catch (e) {
+                    alert('Failed to delete boards.');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Delete All Boards
+              </button>
+            </div>
+            <div className="form-group">
+              <button
+                className="btn-primary"
+                disabled={busy}
+                onClick={async () => {
+                  if (!window.confirm('Delete your account and all owned boards? This cannot be undone.')) return;
+                  try {
+                    setBusy(true);
+                    await axios.delete('/api/users/me');
+                    setShowSettings(false);
+                    logout();
+                    navigate('/');
+                  } catch (e) {
+                    alert('Failed to delete account.');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Delete Account
+              </button>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => !busy && setShowSettings(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

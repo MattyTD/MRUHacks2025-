@@ -20,7 +20,10 @@ const PersonalMindMaps = () => {
 
   const fetchPersonalMindMaps = async () => {
     try {
-      const response = await axios.get('/api/auth/personal-mindmaps');
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/auth/personal-mindmaps', {
+        headers: { 'x-auth-token': token }
+      });
       setMindMaps(response.data.mindMaps || []);
     } catch (err) {
       console.error('Error fetching personal mind maps:', err);
@@ -53,6 +56,10 @@ const PersonalMindMaps = () => {
       console.error('Error deleting personal mind map:', err);
       alert('Failed to delete personal mind map');
     }
+  };
+
+  const handleGenerateGroupMap = (mindMap) => {
+    navigate('/generated-map', { state: { mindMap } });
   };
 
   const handleCreatorComplete = async (mindMapData) => {
@@ -206,6 +213,11 @@ const PersonalMindMaps = () => {
                 <span className="mindmap-date">
                   {editingMindMap?._id === mindMap._id ? 'Updated' : 'Created'} {formatDate(mindMap.updatedAt || mindMap.createdAt)}
                 </span>
+                <div className="mindmap-footer-actions">
+                  <button className="generate-map-btn" onClick={() => handleGenerateGroupMap(mindMap)}>
+                    Generate Group Map
+                  </button>
+                </div>
               </div>
             </div>
           ))

@@ -64,9 +64,17 @@ export const getUniqueTags = (nodes) => {
  * @returns {Array} Array of objects with tag and color properties
  */
 export const getTagColorPairs = (tags) => {
-  return tags.map(tag => ({
-    tag,
-    color: getTagColor(tag)
-  }));
+  return (tags || []).map((entry) => {
+    if (typeof entry === 'string') {
+      return { tag: entry, color: getTagColor(entry) };
+    }
+    if (entry && typeof entry === 'object') {
+      const tag = entry.tag || entry.name || '';
+      const color = entry.color || getTagColor(tag);
+      return { tag, color };
+    }
+    const tag = String(entry ?? '');
+    return { tag, color: getTagColor(tag) };
+  }).filter(p => p.tag);
 };
 
