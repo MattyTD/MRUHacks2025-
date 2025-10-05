@@ -2,7 +2,11 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
+const FriendRequest = require('../models/FriendRequest');
 const auth = require('../middleware/auth');
 
 // Check if JWT_SECRET is available
@@ -138,6 +142,131 @@ router.get('/me', auth, async (req, res) => {
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads/profile-images');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `profile-${req.user.id}-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
+
+// @route   POST /api/auth/upload-profile-image
+// @desc    Upload profile image
+// @access  Private
+router.post('/upload-profile-image', auth, upload.single('profileImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete old profile image if it exists
+    if (user.profileImage) {
+      const oldImagePath = path.join(__dirname, '../uploads/profile-images', path.basename(user.profileImage));
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    // Update user with new profile image path
+    const profileImageUrl = `/uploads/profile-images/${req.file.filename}`;
+    user.profileImage = profileImageUrl;
+    await user.save();
+
+    res.json({ 
+      message: 'Profile image uploaded successfully',
+      profileImageUrl: profileImageUrl
+    });
+  } catch (error) {
+    console.error('Profile image upload error:', error);
+    res.status(500).json({ message: 'Server error during image upload' });
+  }
+});
+
+// @route   POST /api/auth/send-friend-request
+// @desc    Send a friend request to another user
+// @access  Private
+router.post('/send-friend-request', auth, async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    // Check if user is trying to send request to themselves
+    if (email === req.user.email) {
+      return res.status(400).json({ message: 'Cannot send friend request to yourself' });
+    }
+
+    // Find the target user
+    const targetUser = await User.findOne({ email });
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found with this email' });
+    }
+
+    // Check if friend request already exists
+    const existingRequest = await FriendRequest.findOne({
+      $or: [
+        { sender: req.user.id, receiver: targetUser._id },
+        { sender: targetUser._id, receiver: req.user.id }
+      ]
+    });
+
+    if (existingRequest) {
+      return res.status(400).json({ message: 'Friend request already exists between these users' });
+    }
+
+    // Create friend request
+    const friendRequest = new FriendRequest({
+      sender: req.user.id,
+      receiver: targetUser._id,
+      status: 'pending'
+    });
+
+    await friendRequest.save();
+
+    res.json({ 
+      message: 'Friend request sent successfully',
+      friendRequest: {
+        id: friendRequest._id,
+        receiver: {
+          name: targetUser.name,
+          email: targetUser.email
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Friend request error:', error);
+    res.status(500).json({ message: 'Server error during friend request' });
   }
 });
 

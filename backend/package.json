@@ -23,6 +23,7 @@
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
+    "multer": "^2.0.2",
     "vis-network": "^10.0.2"
   },
   "devDependencies": {

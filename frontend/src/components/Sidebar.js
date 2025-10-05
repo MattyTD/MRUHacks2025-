@@ -1,14 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import Squadpng from '../assets/SquadGoalsBeta.png';
 import './Sidebar.css';
 
 const Sidebar = ({ onCreateBoard, onSearch }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarWidth, setSidebarWidth] = useState(80);
   const [isResizing, setIsResizing] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const sidebarRef = useRef(null);
+  const profileDropdownRef = useRef(null);
 
   const handleSearchChange = (e) => {
     const query = e.target.value;
@@ -47,6 +51,25 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
       document.removeEventListener('mouseup', stopResizing);
     };
   }, [isResizing]);
+
+  // Handle click outside for profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <div className="sidebar" ref={sidebarRef} style={{ width: `${sidebarWidth}px` }}>
@@ -101,21 +124,62 @@ const Sidebar = ({ onCreateBoard, onSearch }) => {
       </div>
       
       <div className="sidebar-bottom">
-        <button className="sidebar-button icon-button" title="Account">
-          <svg 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
+        <div className="sidebar-profile-menu" ref={profileDropdownRef}>
+          <button 
+            className="sidebar-button icon-button" 
+            title="Account"
+            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
           >
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-        </button>
+            {user?.profileImage ? (
+              <img 
+                src={`http://localhost:5001${user.profileImage}`} 
+                alt="Profile" 
+                className="sidebar-profile-image"
+              />
+            ) : (
+              <div className="sidebar-profile-placeholder">
+                <span>{user?.name?.charAt(0)?.toUpperCase()}</span>
+              </div>
+            )}
+          </button>
+          
+          {showProfileDropdown && (
+            <div className="sidebar-dropdown">
+              <div className="sidebar-dropdown-header">
+                <span className="sidebar-dropdown-name">{user?.name}</span>
+              </div>
+              <button 
+                className="sidebar-dropdown-item"
+                onClick={() => {
+                  setShowProfileDropdown(false);
+                  navigate('/dashboard');
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                Dashboard
+              </button>
+              <button 
+                className="sidebar-dropdown-item sidebar-dropdown-logout"
+                onClick={() => {
+                  setShowProfileDropdown(false);
+                  handleLogout();
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16,17 21,12 16,7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
         
         <button className="sidebar-button icon-button" title="Settings">
           <svg 
