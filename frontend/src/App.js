@@ -1,5 +1,6 @@
 import React from 'react';
 import Verification from './pages/Verification';
+import VerifyEmailProxy from './pages/VerifyEmailProxy';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
@@ -29,6 +30,7 @@ function AppContent() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/verification" element={<Verification />} />
+              <Route path="/api/auth/verify-email/:token" element={<VerifyEmailProxy />} />
               <Route path="/jhuddy<3" element={
                 <div style={{
                 display: 'flex',

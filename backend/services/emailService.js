@@ -15,8 +15,7 @@ async function sendVerificationEmail(user, origin) {
   await user.save();
 
   // Ensure the link points to the backend API route, not the frontend
-  const backendUrl = process.env.PORT || origin;
-  const verifyUrl = `${backendUrl}/api/auth/verify-email/${token}`;
+  const verifyUrl = `http:/localhost:5001/api/auth/verify-email/${token}`;
   const mailOptions = {
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to: user.email,
