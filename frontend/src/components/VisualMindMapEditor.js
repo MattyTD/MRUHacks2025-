@@ -680,19 +680,7 @@ const VisualMindMapEditor = ({ onComplete, onCancel, initialData = null }) => {
     );
   }, [nodes, currentLayer, currentParentNode, edges]);
 
-  const renderLayerIndicator = useCallback((layer) => {
-    const layerNodes = nodes.filter(n => n.layer === layer.level);
-    
-    return (
-      <div key={layer.id} className="layer-indicator" style={{ backgroundColor: layer.color }}>
-        <div className="layer-info">
-          <span className="layer-name">{layer.name}</span>
-          <span className="layer-count">{layerNodes.length} nodes</span>
-        </div>
-        <div className="layer-description">{layer.description}</div>
-      </div>
-    );
-  }, [nodes]);
+  // Removed top layer indicators bar for a cleaner canvas
 
   return (
     <div className="visual-mindmap-editor">
@@ -863,10 +851,7 @@ const VisualMindMapEditor = ({ onComplete, onCancel, initialData = null }) => {
         ></div>
       </div>
 
-      {/* Layer Indicators */}
-      <div className="layer-indicators">
-        {layers.map(renderLayerIndicator)}
-      </div>
+      {/* Layer indicators removed */}
 
       {/* Canvas */}
       <div className="canvas-container">

@@ -57,11 +57,24 @@ const Owner = () => {
     };
     
     window.addEventListener('sidebarResize', handleSidebarResize);
+    // Refetch boards whenever window regains focus (coming back from editor)
+    const handleFocus = () => { fetchBoards(); };
+    const handleBoardsChanged = () => { fetchBoards(); };
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('boardsChanged', handleBoardsChanged);
     
     return () => {
       window.removeEventListener('sidebarResize', handleSidebarResize);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('boardsChanged', handleBoardsChanged);
     };
   }, []);
+
+  // Keep filtered boards in sync with boards + active tab
+  useEffect(() => {
+    const filtered = (boards || []).filter(b => b.type === boardType);
+    setFilteredBoards(filtered);
+  }, [boards, boardType]);
 
   const fetchPersonalMindMaps = async () => {
     try {

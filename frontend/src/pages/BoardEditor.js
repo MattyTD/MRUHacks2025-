@@ -31,10 +31,16 @@ const BoardEditor = () => {
   const [inviteEmails, setInviteEmails] = useState('');
   const [autoRouted, setAutoRouted] = useState(false);
 
-  // Ensure nodes have positions; if missing, lay them out in concentric circles by layer
+  // Ensure nodes have positions and required defaults for the visual editor
   const generatePositionsIfMissing = (rawNodes) => {
     const missing = (rawNodes || []).some(n => typeof n.x !== 'number' || typeof n.y !== 'number');
-    if (!missing) return rawNodes || [];
+    const enriched = (rawNodes || []).map(n => ({
+      ...n,
+      layer: n.layer ?? 0,
+      parentId: n.parentId ?? null,
+      radius: typeof n.radius === 'number' ? n.radius : 40
+    }));
+    if (!missing) return enriched;
 
     const width = 1000;
     const height = 600;
@@ -48,7 +54,7 @@ const BoardEditor = () => {
       byLayer.get(l).push(n);
     });
 
-    const laidOut = (rawNodes || []).map(n => ({ ...n }));
+    const laidOut = (enriched || []).map(n => ({ ...n }));
     Array.from(byLayer.entries()).forEach(([layer, layerNodes]) => {
       const radius = 120 + Number(layer) * 140;
       const count = layerNodes.length || 1;
@@ -371,10 +377,31 @@ const BoardEditor = () => {
     const initialData = {
       name: board?.title || '',
       context: 'professional',
-      nodes,
-      edges,
+      nodes: (nodes || []).map(n => ({
+        id: n.id,
+        x: n.x,
+        y: n.y,
+        label: n.label,
+        description: n.description,
+        color: n.color,
+        layer: n.layer ?? 0,
+        parentId: n.parentId ?? null,
+        radius: typeof n.radius === 'number' ? n.radius : 40
+      })),
+      edges: (edges || []).map(e => ({
+        id: e.id,
+        from: e.from,
+        to: e.to,
+        type: e.type,
+        color: e.color,
+        label: e.label
+      })),
       connectionTypes: Object.values(legend || {}).map(v => ({ id: v.id, name: v.name, color: v.color })),
-      layers: [],
+      layers: [
+        { id: 0, level: 0, name: 'Root', description: 'Top level', color: '#2D3748' },
+        { id: 1, level: 1, name: 'L1', description: 'Level 1', color: '#4A5568' },
+        { id: 2, level: 2, name: 'L2', description: 'Level 2', color: '#718096' },
+      ],
     };
 
     const handleComplete = async (data) => {
@@ -401,33 +428,31 @@ const BoardEditor = () => {
         >
           ✉️ Invite
         </button>
-        {/* Invite Modal */}
+        {/* Invite Modal (Link Sharing Only) */}
         {showInviteModal && (
           <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h3>Invite Collaborators</h3>
-              <p>Share this editor link so others can edit in real-time:</p>
+              <h3>Share Editing Link</h3>
+              <p>Copy this link and share it with collaborators to work together in real-time.</p>
               <div className="form-group">
-                <input type="text" readOnly value={`${window.location.origin}/board/${id}`} onFocus={(e) => e.target.select()} />
-              </div>
-              <p>Or enter emails (comma separated) to send invites:</p>
-              <div className="form-group">
-                <textarea rows="3" placeholder="user1@example.com, user2@example.com" value={inviteEmails} onChange={(e) => setInviteEmails(e.target.value)} />
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={`${window.location.origin}/board/${id}`} 
+                  onFocus={(e) => e.target.select()} 
+                />
               </div>
               <div className="modal-actions">
                 <button onClick={() => setShowInviteModal(false)}>Close</button>
                 <button onClick={async () => {
-                  const emails = inviteEmails.split(',').map(e => e.trim()).filter(Boolean);
-                  if (emails.length === 0) { setShowInviteModal(false); return; }
                   try {
-                    await axios.post(`/api/boards/${id}/invite`, { emails });
-                    alert('Invites sent (if email service is configured).');
-                  } catch (err) {
-                    console.error('Invite error', err);
-                    alert('Could not send invites automatically. Share the link instead.');
+                    await navigator.clipboard.writeText(`${window.location.origin}/board/${id}`);
+                    alert('Link copied to clipboard');
+                  } catch (_) {
+                    // Fallback: select text for manual copy
+                    alert('Copy failed. Link is selected for manual copy.');
                   }
-                  setShowInviteModal(false);
-                }}>Send Invites</button>
+                }}>Copy Link</button>
               </div>
             </div>
           </div>

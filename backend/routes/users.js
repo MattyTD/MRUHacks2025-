@@ -33,4 +33,25 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/users/me
+// @desc    Delete current user and their owned boards
+// @access  Private
+router.delete('/me', auth, async (req, res) => {
+  try {
+    const Board = require('../models/Board');
+    const userId = req.user.id;
+
+    // Delete boards owned by the user
+    await Board.deleteMany({ owner: userId });
+
+    // Delete the user account
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: 'Account and owned boards deleted' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

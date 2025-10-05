@@ -127,6 +127,75 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/boards/:id/invite
+// @desc    Invite collaborators to a board by email (adds them as collaborators)
+// @access  Private (owner only)
+router.post('/:id/invite', auth, async (req, res) => {
+  try {
+    const Board = require('../models/Board');
+    const User = require('../models/User');
+
+    const board = await Board.findById(req.params.id);
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found' });
+    }
+    if (board.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the owner can invite collaborators' });
+    }
+
+    const emails = Array.isArray(req.body.emails) ? req.body.emails : [];
+    if (emails.length === 0) {
+      return res.status(400).json({ message: 'No emails provided' });
+    }
+
+    // Find users by emails
+    const users = await User.find({ email: { $in: emails } }).select('_id email name');
+    const foundEmails = new Set(users.map(u => u.email));
+    const notFound = emails.filter(e => !foundEmails.has(e));
+
+    // Add to collaborators array (no duplicates, exclude owner)
+    const collaboratorIds = new Set((board.collaborators || []).map(id => id.toString()));
+    let added = 0;
+    users.forEach(u => {
+      if (u._id.toString() === board.owner.toString()) return;
+      if (!collaboratorIds.has(u._id.toString())) {
+        board.collaborators.push(u._id);
+        collaboratorIds.add(u._id.toString());
+        added += 1;
+      }
+    });
+
+    await board.save();
+
+    const updated = await Board.findById(board._id)
+      .populate('owner', 'name email')
+      .populate('collaborators', 'name email');
+
+    res.json({
+      message: 'Invitations processed',
+      addedCollaborators: added,
+      notFound,
+      board: updated
+    });
+  } catch (error) {
+    console.error('❌ Invite Collaborators Error:', error.message);
+    res.status(500).json({ message: 'Server error: ' + error.message });
+  }
+});
+
+// @route   DELETE /api/boards
+// @desc    Delete all boards owned by the current user
+// @access  Private
+router.delete('/', auth, async (req, res) => {
+  try {
+    const result = await Board.deleteMany({ owner: req.user.id });
+    res.json({ message: 'All owned boards deleted', deletedCount: result.deletedCount });
+  } catch (error) {
+    console.error('❌ Delete All Boards Error:', error.message);
+    res.status(500).json({ message: 'Server error: ' + error.message });
+  }
+});
+
 // @route   DELETE /api/boards/:id
 // @desc    Delete a board
 // @access  Private
