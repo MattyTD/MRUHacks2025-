@@ -178,10 +178,28 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Built with ❤️ by the SquadGoals team at MRUHacks2025:
 
-- **Matthew Rojas** ([@MattyTD](https://github.com/MattyTD))
-- **Evan Pitman**
-- **Danny Nguyen**
-- **Don Laliberte**
+- **Matthew Rojas** ([@MattyTD](https://github.com/MattyTD)) - *Frontend Developer*
+  - Developed React components and user interfaces
+  - Implemented interactive mind map visualizations using `vis-network`
+  - Built responsive UI/UX for timeline and relationship mapping features
+  - Integrated Google OAuth authentication flow
+  - Created dynamic graph rendering and user interaction systems
+
+- **Evan Pitman** - *Full-Stack Developer*
+  - Contributed to both frontend and backend development
+  - Assisted with feature implementation and debugging
+
+- **Danny Nguyen** - *Backend Developer & MongoDB Specialist*
+  - Designed and implemented MongoDB database schemas
+  - Optimized database queries and data relationships
+  - Built robust data models for users, events, and relationships
+  - Implemented efficient data storage and retrieval systems
+
+- **Don Laliberte** - *Backend Developer*
+  - Developed Express.js API endpoints and routes
+  - Implemented authentication middleware and JWT token handling
+  - Built file upload system for images and media
+  - Created RESTful API architecture and error handling
 
 ## 🙏 Acknowledgments
 
